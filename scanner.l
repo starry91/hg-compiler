@@ -3,6 +3,7 @@
   #include <cstdio>
   using namespace std;
   extern "C" int yylex();
+  int linenum = 1;
 %}
 %x COMMENTS
 %%
