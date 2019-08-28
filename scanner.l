@@ -8,10 +8,6 @@
 %x COMMENTS
 %%
 [ \t\n] ;
-bool    {
-    cout << "found bool" << endl;
-    // return BOOL; 
-}
 break   {
     cout << "found break" << endl;
     // return BREAK; 
@@ -39,6 +35,22 @@ if  {
 int {
     cout << "found int" << endl;
     // return INT;
+}
+bool {
+    cout << "found int" << endl;
+    // return BOOL;
+}
+char {
+    cout << "found int" << endl;
+    // return CHAR;
+}
+uint {
+    cout << "found int" << endl;
+    // return UINT;
+}
+sint {
+    cout << "found int" << endl;
+    // return SINT;
 }
 return  {
     cout << "found return" << endl;
@@ -113,10 +125,6 @@ endl {
     cout << "found right shift" << endl;
     // return RIGHT_SHIFT;
 }
-char    {
-    cout << "found char" << endl;
-    // return CHAR;
-}
 [0-9]+  {
     cout << "Found an integer:" << endl;
     // return NUM_CONST;
@@ -135,7 +143,7 @@ char    {
 }
 (\+\+|--|!|-)   {
     cout << "found Unary Op" << endl;
-    // return UNI_OP;
+    // return UNARY_OP;
 }
 =   {
     cout << "found Equal to Op" << endl;
