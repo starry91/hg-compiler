@@ -1,0 +1,10 @@
+int main()
+{
+    int i, n, k, res = 0;
+    cin >> n;
+    cin>>k;
+    for(i = 1; i <= n; i = i+1){
+        res = res + i ^ k;
+    };
+    cout<<res;
+}

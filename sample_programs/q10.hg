@@ -1,0 +1,33 @@
+int A[100][100], B[100][100];
+int n,m, l, k, i, j, C[100][100];
+
+void main(){
+    cin>>n;
+    cin>>m;
+    cin>>l;
+    for(i=0;i<n; i=i+1){
+        for(j =0; j<m; j=j+1){
+            cin>>A[i][j];
+        };
+    };
+    for(i=0;i<m; i=i+1){
+        for(j =0; j<l; j=j+1){
+            cin>>B[i][j];
+        };
+    };
+    for(i=0;i<n; i=i+1){
+        for(j =0; j<l; j=j+1){
+            C[i][j] = 0;
+            for(k = 0; k<m; k=k+1){
+                C[i][j] = C[i][j] + A[i][k] * B[k][j];
+            };
+        };
+    };
+    for(i=0;i<n; i=i+1){
+        for(j =0; j<l; j=j+1){
+            cout<<A[i][j];
+            cout << " ";
+        };
+        cout<<"\n";
+    };
+}

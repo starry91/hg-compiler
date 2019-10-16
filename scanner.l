@@ -6,113 +6,123 @@
 %}
 %x COMMENTS
 %%
-[ \t\n] ;
+[ \t] {
+    cout << yytext;
+}
+[\n] {
+    cout << yytext;
+    ++linenum;
+}
 break   {
-    cout << "found break" << endl;
+    cout << yytext;
     return BREAK; 
 }
 continue    {
-    cout << "found continue" << endl;
+    cout << yytext;
     return CONTINUE; 
 }
 else    {
-    cout << "found else" << endl;
+    cout << yytext;
     return ELSE;
 }
+true    {
+    cout << yytext;
+    return TRUE;
+}
 false   {
-    cout << "found false" << endl;
+    cout << yytext;
     return FALSE;
 }
 for {
-    cout << "found for" << endl;
+    cout << yytext;
     return FOR;
 }
 if  {
-    cout << "found if" << endl;
+    cout << yytext;
     return IF;
 }
 int {
-    cout << "found int" << endl;
+    cout << yytext;
     return INT;
 }
 bool {
-    cout << "found int" << endl;
+    cout << yytext;
     return BOOL;
 }
 char {
-    cout << "found int" << endl;
+    cout << yytext;
     return CHAR;
 }
 uint {
-    cout << "found int" << endl;
+    cout << yytext;
     return UINT;
 }
 sint {
-    cout << "found int" << endl;
+    cout << yytext;
     return SINT;
 }
 return  {
-    cout << "found return" << endl;
+    cout << yytext;
     return RETURN;
 }
-true    {
-    cout << "found true" << endl;
-    return TRUE;
-}
 void    {
-    cout << "found void" << endl;
+    cout << yytext;
     return VOID;
 }
 while   {
-    cout << "found while" << endl;
+    cout << yytext;
     return WHILE;
 }
 cout {
-    cout<< "found COUT" <<endl;
+    cout << yytext;
     return COUT;
 }
 cin {
-    cout<<"found CIN"<<endl;
-    // CIN;
+    cout << yytext;
+    return CIN;
 }
 endl {
-    cout<<"found endl"<<endl;
-    // ENDL;
+    cout << yytext;
+    return ENDL;
 }
 [;,\?:=\(\)\[\]\{\}]    {
-    cout << "special char " << endl;
+    cout << yytext;
     return yytext[0];
 }
 \/\/.* {
-    cout<<"found SINGLE COMMENT"<<endl;
-    return SINGLE_COMMENT;
+    cout << yytext;
 }
 \<\< {
-    cout << "found Left shift" << endl;
+    cout << yytext;
     return LEFT_SHIFT;
 }
 >> {
-    cout << "found right shift" << endl;
+    cout << yytext;
     return RIGHT_SHIFT;
 }
 [0-9]+  {
-    cout << "Found an integer:" << endl;
+    cout << yytext;
+    yylval.ival = atoi(yytext);
     return NUM_CONST;
 }
 [a-zA-Z][a-zA-Z0-9]*    {
-    cout << "Found a ID" << endl;
+    cout << yytext;
+    yylval.sval = strdup(yytext);
     return ID;
 }
 \".*\"    {
-    cout << "Found a CHAR_LITERAL" << endl;
+    cout << yytext;
+    yylval.sval = strdup(yytext);
     return CHAR_CONST;
 }
-(\+|\-|\*|\/|AND|OR|\^|==|!=|<=|>=|<|>)   {
-    cout << "found Bin Op" << endl;
+\+|\-|\*|\/|&&|\|\||\^|==|!=|<=|>=|<|>|%   {
+    cout << yytext;
+    yylval.sval = strdup(yytext);
     return BIN_OP;
 }
 (\+\+|--|!|-)   {
-    cout << "found Unary Op" << endl;
+    cout << yytext;
+    yylval.sval = strdup(yytext);
     return UNARY_OP;
 }
 \/\* { // start of a comment: go to a 'COMMENTS' state.

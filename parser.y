@@ -7,6 +7,7 @@
   extern int yylex();
   extern "C" int yyparse();
   extern FILE *yyin;
+  extern int linenum;
  
   void yyerror(const char *s);
 %}
@@ -16,17 +17,21 @@
   float fval;
   char *sval;
 }
+%define parse.error verbose
+
 // define the constant-string tokens:
 %token BREAK FOR IF RETURN TRUE FALSE VOID WHILE CONTINUE ELSE COUT CIN ENDL
 %token INT CHAR BOOL UINT SINT
-%token MULTI_COMMENT SINGLE_COMMENT LEFT_SHIFT RIGHT_SHIFT NUM_CONST ID CHAR_CONST
-%token BIN_OP UNARY_OP
+%token MULTI_COMMENT SINGLE_COMMENT LEFT_SHIFT RIGHT_SHIFT
 
 // define the "terminal symbol" token types I'm going to use (in CAPS
 // by convention), and associate each with a field of the union:
-%token <ival> INT_VAL
-%token <fval> FLOAT_VAL
-%token <sval> STRING_VAL
+%token <ival> NUM_CONST
+%token <sval> ID
+%token <sval> CHAR_CONST
+%token <sval> BIN_OP
+%token <sval> UNARY_OP
+
 %right '?' ':'
 %left UNARY_OP
 %left BIN_OP
@@ -40,21 +45,22 @@ DECLARATION_LIST: DECLARATION_LIST  DECLARATION
                     | DECLARATION
                 ;
 DECLARATION: FUNC_DEC
-            | VAR_DEC
+            | VAR_DEC_STATEMENT ';'
             ;
-VAR_DEC:    TYPE_SPECIFIER VAR_DEC_LIST ';'
+VAR_DEC_STATEMENT:  TYPE_SPECIFIER VAR_DEC_LIST
             ;
 TYPE_SPECIFIER: INT
             | BOOL
             | CHAR
             | SINT
             | UINT
+            | VOID
             ;
 VAR_DEC_LIST: VAR_DEC_LIST ',' VAR_INITIALIZE
             | VAR_INITIALIZE
             ;
 VAR_INITIALIZE: VAR_DEC_ID
-            | VAR_DEC_ID '=' EXPR
+            | VAR_DEC_ID '=' SIMPLE_STATEMENT
             ;
 VAR_DEC_ID: ID '[' NUM_CONST ']'
             | ID
@@ -64,6 +70,7 @@ FUNC_DEC:   TYPE_SPECIFIER ID '(' FUNC_ARGS ')' BLOCK_STATEMENT
             ;
 FUNC_ARGS: TYPE_SPECIFIER ID ',' FUNC_ARGS
             | TYPE_SPECIFIER ID
+            | %empty
             ;
 STATEMENT: BLOCK_STATEMENT ';'
             | ITERATION_STATEMENT ';'
@@ -71,9 +78,12 @@ STATEMENT: BLOCK_STATEMENT ';'
             | ';'
             | RETURN_STATEMENT ';'
             | ASSIGNMENT_STATEMENT ';'
+            | VAR_DEC_STATEMENT ';'
             | SIMPLE_STATEMENT ';'
             | BREAK_STATEMENT ';'
             | CONTINUE_STATEMENT ';'
+            | STDIN_STATEMENT ';'
+            | STDOUT_STATEMENT ';'
             ;
 ASSIGNMENT_STATEMENT: VAR_ACCESS_ID '=' SIMPLE_STATEMENT
             | VAR_ACCESS_ID '=' SIMPLE_STATEMENT ',' ASSIGNMENT_STATEMENT
@@ -85,10 +95,9 @@ VAR_ACCESS_ID: ID
 SIMPLE_STATEMENT: EXPR
             | FUNC_CALL
             ;
-BLOCK_STATEMENT: '{' VAR_DEC STMNT_LIST '}'
-            | '{' STMNT_LIST '}'
+BLOCK_STATEMENT:  '{' STMNT_LIST '}'
             ;  
-ITERATION_STATEMENT: FOR '(' EXPR ';' EXPR ';' EXPR ')' BLOCK_STATEMENT 
+ITERATION_STATEMENT: FOR '(' ASSIGNMENT_STATEMENT ';' EXPR ';' ASSIGNMENT_STATEMENT ')' BLOCK_STATEMENT 
             | WHILE '(' EXPR ')' BLOCK_STATEMENT
             ;
 CONTROL_STATEMENT: IF '(' EXPR ')' BLOCK_STATEMENT
@@ -104,6 +113,10 @@ BREAK_STATEMENT: BREAK
             ;
 CONTINUE_STATEMENT: CONTINUE
             ;
+STDIN_STATEMENT: CIN RIGHT_SHIFT EXPR
+            ;
+STDOUT_STATEMENT: COUT LEFT_SHIFT EXPR
+            ;
 PARAMS_LIST: SIMPLE_STATEMENT ',' PARAMS_LIST
             | SIMPLE_STATEMENT
             ;
@@ -111,7 +124,7 @@ STMNT_LIST: STATEMENT STMNT_LIST
             | %empty
             ;
 EXPR:       VAR_ACCESS_ID
-            | CONST 
+            | CONST
             | EXPR BIN_OP EXPR
             | '(' EXPR ')' 
             | UNARY_OP EXPR 
@@ -122,10 +135,15 @@ TERNARY_EXPR: EXPR '?' EXPR ':' EXPR
             ;
 CONST:      NUM_CONST
             | CHAR_CONST
+            | TRUE
+            | FALSE
             ;
 %%
 
 int main(int argc,char** argv) {
+#ifdef YYDEBUG
+  yydebug = 0;
+#endif
     // open a file handle to a particular file:
     FILE *myfile = fopen(argv[1], "r");
     // make sure it's valid:
@@ -141,7 +159,7 @@ int main(int argc,char** argv) {
 }
 
 void yyerror(const char *s) {
-  cout << "EEK, parse error!  Message: " << s << endl;
+  cout << "EEK, parse error on line " << linenum << "!  Message: " << s << endl;
   // might as well halt now:
   exit(-1);
 }

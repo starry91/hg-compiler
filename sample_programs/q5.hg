@@ -1,0 +1,32 @@
+bool done[100000];
+int printPermutations(int n)
+{
+    int i;
+    c = a+b;
+    bool flag = false;
+    for(i=1; i <= n; i=i+1)
+    {
+        if(done[i] == false)
+        {
+            flag = true;
+            done[i] = true;
+            cout << i;
+            cout << " ";
+            printPermutations(start, n);
+            done[i] = false;
+        };
+    };
+    if(!flag)
+    {
+        cout << "\n";
+    };
+    return 0;
+}
+
+int main()
+{
+    int n;
+    cin >> n;
+    printPermutations(n);
+    return 0;
+}

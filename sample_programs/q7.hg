@@ -1,0 +1,60 @@
+int arr[10000], output[10000], count[10];
+int getMax(int n) 
+{ 
+    int mx = arr[0]; 
+    int i;
+    for (i = 1; i < n; i=i+1) {
+        if (arr[i] > mx) {
+            mx = arr[i]; 
+        };
+    };
+    return mx; 
+} 
+void countSort(int n, int exp) 
+{ 
+    int i;
+    for (i = 0; i < n; i=i+1) {
+        count[ (arr[i]/exp)%10 ]++; 
+    };
+  
+    for (i = 1; i < 10; i=i+1) {
+         count[i] = count[i] + count[i - 1]; 
+    };
+  
+    for (i = n - 1; i >= 0; i=i-1) 
+    { 
+        output[count[ (arr[i]/exp)%10 ] - 1] = arr[i]; 
+        count[ (arr[i]/exp)%10 ]--; 
+    };
+    for (i = 0; i < n; i=i+1) {
+        arr[i] = output[i]; 
+    };
+} 
+void radixsort(int n) 
+{ 
+    int exp;
+    int m = getMax(arr, n); 
+    for (exp = 1; m/exp > 0; exp = exp*10) {
+        countSort(arr, n, exp); 
+    };
+} 
+  
+void print(int n) 
+{
+    int i;
+    for (i = 0; i < n; i=i+1) {
+        cout << arr[i];
+        cout << " ";
+    };
+} 
+  
+void main(){  
+    int n, i;
+    cin >> n;
+    for(i=0; i < n; i=i+1)
+    {
+        cin >> arr[i];
+    };
+    insertionSort(arr, n);
+    printArray(arr, n); 
+}

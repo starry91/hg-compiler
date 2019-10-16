@@ -1,0 +1,18 @@
+int main()
+{
+    int n, i;
+    bool res = true;
+    cin>>n;
+    for(i = 2; i*i <= n; i=i+1){
+        if(!(n%i)){
+            res = false;
+        };
+    };
+    if(res){
+        cout<<"It is a prime";
+    }
+    else {
+        cout<<"It is not a prime";
+    };
+    return 0;
+}

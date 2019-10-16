@@ -1,0 +1,23 @@
+int main()
+{
+    bool prime[100000];
+    int i, j, n;
+    cin >> n;
+    for(i = 0; i <= N; i=i+1){
+        prime[i] = true;
+    };
+    for(i = 2; i*i<=N; i=i+1){
+        if(prime[i]){
+            for(j = 2*i; j<=N; j=j+i){
+                prime[i] = false;
+            };
+        };
+    };
+    for(i = 1; i <= N; i=i+1){
+        if(prime[i]){
+            cout<<i;
+            cout<<" ";
+        };
+    };
+    return 0;
+}
