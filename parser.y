@@ -88,25 +88,22 @@ STATEMENT: BLOCK_STATEMENT ';'
 ASSIGNMENT_STATEMENT: VAR_ACCESS_ID '=' SIMPLE_STATEMENT
             | VAR_ACCESS_ID '=' SIMPLE_STATEMENT ',' ASSIGNMENT_STATEMENT
             ;
-VAR_ACCESS_ID: ID
-            | ID '[' EXPR ']'
-            | ID '[' EXPR ']' '[' EXPR ']'
-            ;
 SIMPLE_STATEMENT: EXPR
             | FUNC_CALL
             ;
 BLOCK_STATEMENT:  '{' STMNT_LIST '}'
             ;  
-ITERATION_STATEMENT: FOR '(' ASSIGNMENT_STATEMENT ';' EXPR ';' ASSIGNMENT_STATEMENT ')' BLOCK_STATEMENT 
-            | WHILE '(' EXPR ')' BLOCK_STATEMENT
+ITERATION_STATEMENT: FOR_STATEMENT
+            | WHILE_STATEMENT
+            ;
+FOR_STATEMENT: FOR '(' ASSIGNMENT_STATEMENT ';' EXPR ';' ASSIGNMENT_STATEMENT ')' BLOCK_STATEMENT
+            ;
+WHILE_STATEMENT: WHILE '(' EXPR ')' BLOCK_STATEMENT
             ;
 CONTROL_STATEMENT: IF '(' EXPR ')' BLOCK_STATEMENT
             | IF '(' EXPR ')' BLOCK_STATEMENT ELSE BLOCK_STATEMENT
             ;
-FUNC_CALL: ID '(' PARAMS_LIST ')'
-            ;
 RETURN_STATEMENT: RETURN ID
-            | RETURN CONST
             | RETURN
             ;
 BREAK_STATEMENT: BREAK
@@ -116,6 +113,12 @@ CONTINUE_STATEMENT: CONTINUE
 STDIN_STATEMENT: CIN RIGHT_SHIFT EXPR
             ;
 STDOUT_STATEMENT: COUT LEFT_SHIFT EXPR
+            ;
+FUNC_CALL: ID '(' PARAMS_LIST ')'
+            ;
+VAR_ACCESS_ID: ID
+            | ID '[' EXPR ']'
+            | ID '[' EXPR ']' '[' EXPR ']'
             ;
 PARAMS_LIST: SIMPLE_STATEMENT ',' PARAMS_LIST
             | SIMPLE_STATEMENT
@@ -127,8 +130,7 @@ EXPR:       VAR_ACCESS_ID
             | CONST
             | EXPR BIN_OP EXPR
             | '(' EXPR ')' 
-            | UNARY_OP EXPR 
-            | EXPR UNARY_OP
+            | UNARY_OP EXPR
             | TERNARY_EXPR
             ;
 TERNARY_EXPR: EXPR '?' EXPR ':' EXPR
