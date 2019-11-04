@@ -11,7 +11,7 @@
   extern FILE *yyin;
   extern int linenum;
   void yyerror(const char *s);
-  class NumConstASTnode* start = NULL;
+  class ProgramASTnode* start = NULL;
 %}
 
 %union {
@@ -112,7 +112,7 @@
 %%
 // the first rule defined is the highest-level rule, which in our
 // case is just the concept of a whole "snazzle file":
-PROGRAM: DECLARATION_LIST {$$ = $1;}
+PROGRAM: DECLARATION_LIST {$$ = $1; start=$$;}
         ;
 DECLARATION_LIST: DECLARATION_LIST  DECLARATION {$$->insert($2);}
                     | DECLARATION {$$ = new DeclarationListASTnode();
@@ -149,7 +149,7 @@ VAR_DEC_ID: ID '[' NUM_CONST ']' {$$ = new VarDecIDASTnode($1);
             ;
 FUNC_DEC:   TYPE_SPECIFIER ID '(' FUNC_ARGS ')' BLOCK_STATEMENT {$$ = new FuncDecASTnode($1, $2, $4, $6);}
             ;
-FUNC_ARGS: TYPE_SPECIFIER ID ',' FUNC_ARGS {$$->insert($1, $2);}
+FUNC_ARGS: FUNC_ARGS ',' TYPE_SPECIFIER ID {$$->insert($3, $4);}
             | TYPE_SPECIFIER ID {
               $$ = new FunctionArgsASTnode();
               $$->insert($1, $2);
@@ -172,14 +172,14 @@ STATEMENT: BLOCK_STATEMENT ';' {$$ = $1;}
 ASSIGNMENT_STATEMENT: VAR_ACCESS_ID '=' SIMPLE_STATEMENT {$$ = new AssignmentStatementASTnode();
                   $$->insert($1, $3);
               }
-            | VAR_ACCESS_ID '=' SIMPLE_STATEMENT ',' ASSIGNMENT_STATEMENT {$$->insert($1, $3);}
+            | ASSIGNMENT_STATEMENT ',' VAR_ACCESS_ID '=' SIMPLE_STATEMENT {$$->insert($3, $5);}
             ;
 SIMPLE_STATEMENT: EXPR {$$ = $1;}
             | FUNC_CALL {$$ = $1;}
             ;
 FUNC_CALL: ID '(' PARAMS_LIST ')' {$$ = new FuncCallASTnode($1, $3);}
             ;
-PARAMS_LIST: SIMPLE_STATEMENT ',' PARAMS_LIST {$$->insert($1);}
+PARAMS_LIST: PARAMS_LIST ',' SIMPLE_STATEMENT {$$->insert($1);}
             | SIMPLE_STATEMENT  {$$ = new ParamsListASTnode(); $$->insert($1);}
 BLOCK_STATEMENT:  '{' STMNT_LIST '}' {$$ = new BlockStatementASTnode($2);}
             ;  
@@ -207,7 +207,7 @@ STDIN_STATEMENT: CIN RIGHT_SHIFT EXPR {$$ = new StdinStatementASTnode($3);}
 STDOUT_STATEMENT: COUT LEFT_SHIFT EXPR {$$ = new StdoutStatementASTnode($3);}
             ;
             ;
-STMNT_LIST: STATEMENT STMNT_LIST {$$->insert($2);}
+STMNT_LIST: STMNT_LIST STATEMENT {$$->insert($2);}
             | %empty  {$$ = new StatementListASTnode();}
             ;
 EXPR:       VAR_ACCESS_ID {$$ = $1;}

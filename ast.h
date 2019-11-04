@@ -79,12 +79,7 @@ public:
 	virtual void visit(StatementASTnode &node) = 0;
 	virtual void visit(FunctionArgsASTnode &node) = 0;
 	virtual void visit(FuncDecASTnode &node) = 0;
-	virtual void visit(VarDecID2dASTnode &node) = 0;
-	virtual void visit(VarDecID1dASTnode &node) = 0;
-	virtual void visit(VarDecIDSimpleASTnode &node) = 0;
 	virtual void visit(VarDecIDASTnode &node) = 0;
-	virtual void visit(VarInitializeComplexASTnode &node) = 0;
-	virtual void visit(VarInitializeSimpleASTnode &node) = 0;
 	virtual void visit(VarInitializeASTnode &node) = 0;
 	virtual void visit(VarDecListASTnode &node) = 0;
 
@@ -116,7 +111,11 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
-	}	
+	}
+	ASTnode * getDecListItem()
+	{
+		return dec_list_item;
+	}
 };
 
 class DeclarationListASTnode : public ProgramASTnode
@@ -130,7 +129,11 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
-	}	
+	}
+	vector<ASTnode *> getDecList()
+	{
+		return dec_list;
+	}
 };
 
 class DeclarationASTnode : public ASTnode
@@ -141,7 +144,11 @@ class DeclarationASTnode : public ASTnode
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
-	}	
+	}
+	ASTnode * getDecItem()
+	{
+		return decl_item;
+	}
 };
 
 class TypeSpecifierASTnode : public ASTnode
@@ -152,13 +159,29 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
-	}	
+	}
+	string getType()
+	{
+		return type;
+	}
 };
 
 class VarDecListASTnode : public ASTnode
 {
 public:
 	vector<ASTnode *> var_initialize_list;
+	void insert(ASTnode* var_initialize)
+	{
+		var_initialize_list.push_back(var_initialize);
+	}
+	virtual void accept(ASTvisitor &v)
+	{
+	    v.visit(*this);
+	}
+	vector<ASTnode *> getVarInitList()
+	{
+		return var_initialize_list;
+	}
 };
 
 enum INITIALIZE_TYPE
@@ -183,7 +206,19 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
-	}	
+	}
+	INITIALIZE_TYPE getInitializeType()
+	{
+		return initialize_type;
+	}
+	ASTnode* getVarDecID()
+	{
+		return var_dec_id_item;
+	}
+	ASTnode* getSimpleStmnt()
+	{
+		return var_dec_id_item;
+	}
 };
 
 class VarDecIDASTnode : public ASTnode
@@ -199,7 +234,15 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
-	}	
+	}
+	string getID()
+	{
+		return id;
+	}
+	vector<ASTnode *>& getDimsSizeList()
+	{
+		return dims_size_list;
+	}
 };
 
 class FuncDecASTnode : public ASTnode
@@ -215,6 +258,22 @@ public:
 	{
 	    v.visit(*this);
 	}
+	ASTnode* getTypeSpecifier()
+	{
+		return type_specifier_item;
+	}
+	string getID()
+	{
+		return id;
+	}
+	ASTnode* getFuncArgs()
+	{
+		return func_args_item;
+	}
+	ASTnode* getBlockStmnt()
+	{
+		return block_stmnt_item;
+	}
 };
 
 class FunctionArgsASTnode : public ASTnode
@@ -228,6 +287,10 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
+	}
+	vector<pair<ASTnode *, string>>& getFuncArgsList()
+	{
+		return func_arg_list;
 	}
 };
 
@@ -268,6 +331,10 @@ public:
 	{
 	    v.visit(*this);
 	}
+	ASTnode* getStmntListItem()
+	{
+		return stmnt_list_item;
+	}
 };
 
 // enum ITERATION_STATEMENT_TYPE
@@ -292,6 +359,22 @@ public:
 	{
 	    v.visit(*this);
 	}
+	ASTnode* getStartStmnt()
+	{
+		return start_stmnt;
+	}
+	ASTnode* getloopCond()
+	{
+		return loop_condition;
+	}
+	ASTnode* getEndStmnt()
+	{
+		return end_stmnt;
+	}
+	ASTnode* getloopBody()
+	{
+		return loop_body;
+	}
 };
 
 class WhileStatementASTnode : public IterationStatementASTnode
@@ -304,6 +387,14 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
+	}
+	ASTnode* getloopCond()
+	{
+		return loop_condition;
+	}
+	ASTnode* getloopBody()
+	{
+		return loop_body;
 	}
 };
 
@@ -344,6 +435,14 @@ public:
 	{
 	    v.visit(*this);
 	}
+	bool checkIsEmpty()
+	{
+		return is_empty;
+	}
+	string getID()
+	{
+		return id;
+	}
 };
 
 class AssignmentStatementASTnode : public StatementASTnode
@@ -358,6 +457,10 @@ public:
 	{
 	    v.visit(*this);
 	}
+	vector<pair<ASTnode *, ASTnode *>>& getAssignmentStmntList()
+	{
+		return assign_stmnt_list;
+	}
 };
 
 class VarDecStatementASTnode : public StatementASTnode
@@ -370,6 +473,14 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
+	}
+	ASTnode* getTypeSpecifier()
+	{
+		return type_specifier_item;
+	}
+	ASTnode* getVarDecListItem()
+	{
+		return var_dec_list_item;
 	}
 };
 
@@ -394,6 +505,14 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
+	}
+	string getFuncID()
+	{
+		return func_id;
+	}
+	ASTnode * getParamsListItem()
+	{
+		return params_list_item;
 	}
 };
 
@@ -424,6 +543,10 @@ public:
 	{
 	    v.visit(*this);
 	}
+	ASTnode* getExprItem()
+	{
+		return expr_item;
+	}
 };
 
 class StdoutStatementASTnode : public StatementASTnode
@@ -434,6 +557,10 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
+	}
+	ASTnode* getExprItem()
+	{
+		return expr_item;
 	}
 };
 
@@ -449,6 +576,10 @@ public:
 	{
 	    v.visit(*this);
 	}
+	vector<ASTnode *>& getSimpleStmntList()
+	{
+		return simple_stmnt_list;
+	}
 };
 
 class StatementListASTnode : public ASTnode
@@ -462,6 +593,10 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
+	}
+	vector<ASTnode *>& getStmntList()
+	{
+		return stmnt_list;
 	}
 };
 
@@ -487,6 +622,10 @@ class EnclosedExprASTnode : public ExprASTnode
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
+	}
+	ExprASTnode* getExprItem()
+	{
+		return expr_item;
 	}
 };
 
@@ -516,6 +655,14 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
+	}
+	string getID()
+	{
+		return id;
+	}
+	vector<ASTnode *>& getDimsValList()
+	{
+		return dims_val_list;
 	}
 };
 
@@ -578,6 +725,14 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
+	}
+	string getOpType()
+	{
+		return op_type;
+	}
+	ASTnode* getExprItem()
+	{
+		return expr_item;
 	}
 };
 
@@ -695,6 +850,10 @@ public:
 	virtual void accept(ASTvisitor &v)
 	{
 		v.visit(*this);
+	}
+	string getBoolConst()
+	{
+		return bool_type;
 	}
 };
 

@@ -20,46 +20,155 @@ class PostFixVisitor: public ASTvisitor {
 
     virtual void visit(NumConstASTnode& node) 
     {
-        std::cout << node.getIntLit() << " ";
+        cout << node.getIntLit() << " ";
     }
 
-	virtual void visit(CharConstASTnode &node){};
-	virtual void visit(BoolConstASTnode &node){};
-	virtual void visit(UnaryASTnode &node){};
-	virtual void visit(ConstASTnode &node){};
-	virtual void visit(EnclosedExprASTnode &node){};
-	virtual void visit(ExprASTnode &node){};
-	virtual void visit(StatementListASTnode &node){};
-	virtual void visit(ParamsListASTnode &node){};
-	virtual void visit(StdoutStatementASTnode &node){};
-	virtual void visit(StdinStatementASTnode &node){};
-	virtual void visit(ContinueStatementASTnode &node){};
-	virtual void visit(BreakStatementASTnode &node){};
-	virtual void visit(ReturnStatementASTnode &node){};
-	virtual void visit(FuncCallASTnode &node){};
-	virtual void visit(WhileStatementASTnode &node){};
-	virtual void visit(ForStatementASTnode &node){};
-	virtual void visit(IterationStatementASTnode &node){};
-	virtual void visit(BlockStatementASTnode &node){};
-	virtual void visit(SimpleStatementASTnode &node){};
-	virtual void visit(EmptyStatementASTnode &node){};
-	virtual void visit(VarAccessIdASTnode &node){};
-	virtual void visit(AssignmentStatementASTnode &node){};
-	virtual void visit(StatementASTnode &node){};
-	virtual void visit(FunctionArgsASTnode &node){};
-	virtual void visit(FuncDecASTnode &node){};
-	virtual void visit(VarDecID2dASTnode &node){};
-	virtual void visit(VarDecID1dASTnode &node){};
-	virtual void visit(VarDecIDSimpleASTnode &node){};
-	virtual void visit(VarDecIDASTnode &node){};
-	virtual void visit(VarInitializeComplexASTnode &node){};
-	virtual void visit(VarInitializeSimpleASTnode &node){};
-	virtual void visit(VarInitializeASTnode &node){};
-	virtual void visit(VarDecListASTnode &node){};
+	virtual void visit(CharConstASTnode &node){
+		cout << node.getCharConst() << " ";
+	};
+	virtual void visit(BoolConstASTnode &node){
+		cout << node.getBoolConst() << " ";
+	};
+	virtual void visit(UnaryASTnode &node){
+		cout << node.getOpType() << " ";
+		node.getExprItem()->accept(*this);
+	};
+	virtual void visit(ConstASTnode &node){
 
-	virtual void visit(TypeSpecifierASTnode &node){};
-	virtual void visit(VarDecStatementASTnode &node){};
-	virtual void visit(DeclarationASTnode &node){};
-	virtual void visit(DeclarationListASTnode &node){};
-	virtual void visit(ProgramASTnode &node){};
+	};
+	virtual void visit(EnclosedExprASTnode &node){
+		node.getExprItem()->accept(*this);
+	};
+	virtual void visit(ExprASTnode &node){
+
+	};
+	virtual void visit(StatementListASTnode &node){
+		auto x = node.getStmntList();
+		for(auto y : x)
+		{
+			y->accept(*this);
+		}
+	};
+	virtual void visit(ParamsListASTnode &node){
+		auto x = node.getSimpleStmntList();
+		for(auto y : x)
+		{
+			y->accept(*this);
+		}
+	};
+	virtual void visit(StdoutStatementASTnode &node){
+		node.getExprItem()->accept(*this);
+	};
+	virtual void visit(StdinStatementASTnode &node){
+		node.getExprItem()->accept(*this);
+	};
+	virtual void visit(ContinueStatementASTnode &node){
+
+	};
+	virtual void visit(BreakStatementASTnode &node){
+
+	};
+	virtual void visit(ReturnStatementASTnode &node){
+		if(!node.checkIsEmpty())
+			cout << node.getID() << " ";
+	};
+	virtual void visit(FuncCallASTnode &node){
+		cout << node.getFuncID() << " ";
+		node.getParamsListItem()->accept(*this);
+	};
+	virtual void visit(WhileStatementASTnode &node){
+		node.getloopCond()->accept(*this);
+		node.getloopBody()->accept(*this);	
+	};
+	virtual void visit(ForStatementASTnode &node){
+		node.getStartStmnt()->accept(*this);
+		node.getloopCond()->accept(*this);
+		node.getEndStmnt()->accept(*this);
+		node.getloopBody()->accept(*this);
+	};
+	virtual void visit(IterationStatementASTnode &node){
+
+	};
+	virtual void visit(BlockStatementASTnode &node){
+		node.getStmntListItem()->accept(*this);
+	};
+	virtual void visit(SimpleStatementASTnode &node){
+
+	};
+	virtual void visit(EmptyStatementASTnode &node){
+
+	};
+	virtual void visit(VarAccessIdASTnode &node){
+		cout << node.getID() << " ";
+		auto x = node.getDimsValList();
+		for(auto y : x)
+		{
+			y->accept(*this);
+		}
+	};
+	virtual void visit(AssignmentStatementASTnode &node){
+		auto x = node.getAssignmentStmntList();
+		for(auto y : x)
+		{
+			y.first->accept(*this);
+			y.second->accept(*this);
+		}
+	};
+	virtual void visit(StatementASTnode &node){
+
+	};
+	virtual void visit(FunctionArgsASTnode &node){
+		auto x = node.getFuncArgsList();
+		for(auto y : x)
+		{
+			y.first->accept(*this);
+			cout << y.second << " ";
+		}
+	};
+	virtual void visit(FuncDecASTnode &node){
+		node.getTypeSpecifier()->accept(*this);
+		cout << node.getID() << " ";
+		node.getFuncArgs()->accept(*this);
+		node.getBlockStmnt()->accept(*this);
+	};
+	virtual void visit(VarDecIDASTnode &node){
+		cout << node.getID() << " ";
+		auto x = node.getDimsSizeList();
+		for(auto y : x)
+		{
+			y->accept(*this);
+		}
+	};
+	virtual void visit(VarInitializeASTnode &node){
+		node.getVarDecID()->accept(*this);
+		node.getSimpleStmnt()->accept(*this);
+	};
+	virtual void visit(VarDecListASTnode &node){
+		auto x = node.getVarInitList();
+		for(auto y : x)
+		{
+			y->accept(*this);
+		}
+	};
+
+	virtual void visit(TypeSpecifierASTnode &node){
+		cout << node.getType() << " ";
+	};
+	virtual void visit(VarDecStatementASTnode &node){
+		node.getTypeSpecifier()->accept(*this);
+		node.getVarDecListItem()->accept(*this);
+	};
+	virtual void visit(DeclarationASTnode &node){
+		node.getDecItem()->accept(*this);
+	};
+	virtual void visit(DeclarationListASTnode &node){
+		auto x = node.getDecList();
+		for(auto y : x)
+		{
+			y->accept(*this);
+		}
+	};
+	virtual void visit(ProgramASTnode &node){
+		node.getDecListItem()->accept(*this);
+	};
 };

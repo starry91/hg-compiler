@@ -115,7 +115,7 @@ endl {
 \".*\"    {
     cout << yytext;
     // yylval.sval = strdup(yytext);
-    yylval.char_const = new CharConstASTnode(string(yytext));
+    yylval.char_const = new CharConstASTnode(strdup(yytext));
     return CHAR_CONST;
 }
 \+|\-|\*|\/|&&|\|\||\^|==|!=|<=|>=|<|>|%   {
