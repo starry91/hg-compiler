@@ -27,6 +27,7 @@ class PostFixVisitor: public ASTvisitor {
 	virtual void visit(BoolConstASTnode &node){};
 	virtual void visit(UnaryASTnode &node){};
 	virtual void visit(ConstASTnode &node){};
+	virtual void visit(EnclosedExprASTnode &node){};
 	virtual void visit(ExprASTnode &node){};
 	virtual void visit(StatementListASTnode &node){};
 	virtual void visit(ParamsListASTnode &node){};
@@ -41,6 +42,7 @@ class PostFixVisitor: public ASTvisitor {
 	virtual void visit(IterationStatementASTnode &node){};
 	virtual void visit(BlockStatementASTnode &node){};
 	virtual void visit(SimpleStatementASTnode &node){};
+	virtual void visit(EmptyStatementASTnode &node){};
 	virtual void visit(VarAccessIdASTnode &node){};
 	virtual void visit(AssignmentStatementASTnode &node){};
 	virtual void visit(StatementASTnode &node){};
