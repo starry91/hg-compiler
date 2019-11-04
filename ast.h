@@ -1,4 +1,4 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 
 using namespace std;
 
@@ -38,340 +38,387 @@ class ParamsListASTnode;
 class StatementListASTnode;
 
 class ExprASTnode;
-class TernaryExprASTnode;
+class TernaryASTnode;
 class ConstASTnode;
 class BinaryASTnode;
 class UnaryASTnode;
 
 class NumConstASTnode;
 class CharConstASTnode;
+class BoolConstASTnode;
 
-class ASTvisitor {
-  public:
-    virtual void visit(BinaryASTnode& node) = 0;
-    virtual void visit(TernaryASTnode& node) = 0;
-    virtual void visit(NumConstASTnode& node) = 0;
+class ASTvisitor
+{
+public:
+	virtual void visit(BinaryASTnode &node) = 0;
+	virtual void visit(TernaryASTnode &node) = 0;
+	virtual void visit(BoolConstASTnode &node) = 0;
+	virtual void visit(CharConstASTnode &node) = 0;
+	virtual void visit(NumConstASTnode &node) = 0;
+	virtual void visit(UnaryASTnode &node) = 0;
+	virtual void visit(ConstASTnode &node) = 0;
+	virtual void visit(ExprASTnode &node) = 0;
+	virtual void visit(StatementListASTnode &node) = 0;
+	virtual void visit(ParamsListASTnode &node) = 0;
+	virtual void visit(StdoutStatementASTnode &node) = 0;
+	virtual void visit(StdinStatementASTnode &node) = 0;
+	virtual void visit(ContinueStatementASTnode &node) = 0;
+	virtual void visit(BreakStatementASTnode &node) = 0;
+	virtual void visit(ReturnStatementASTnode &node) = 0;
+	virtual void visit(FuncCallASTnode &node) = 0;
+	virtual void visit(WhileStatementASTnode &node) = 0;
+	virtual void visit(ForStatementASTnode &node) = 0;
+	virtual void visit(IterationStatementASTnode &node) = 0;
+	virtual void visit(BlockStatementASTnode &node) = 0;
+	virtual void visit(SimpleStatementASTnode &node) = 0;
+	virtual void visit(VarAccessIdASTnode &node) = 0;
+	virtual void visit(AssignmentStatementASTnode &node) = 0;
+	virtual void visit(StatementASTnode &node) = 0;
+	virtual void visit(FunctionArgsASTnode &node) = 0;
+	virtual void visit(FuncDecASTnode &node) = 0;
+	virtual void visit(VarDecID2dASTnode &node) = 0;
+	virtual void visit(VarDecID1dASTnode &node) = 0;
+	virtual void visit(VarDecIDSimpleASTnode &node) = 0;
+	virtual void visit(VarDecIDASTnode &node) = 0;
+	virtual void visit(VarInitializeComplexASTnode &node) = 0;
+	virtual void visit(VarInitializeSimpleASTnode &node) = 0;
+	virtual void visit(VarInitializeASTnode &node) = 0;
+	virtual void visit(VarDecListASTnode &node) = 0;
+
+	virtual void visit(TypeSpecifierASTnode &node) = 0;
+	virtual void visit(VarDecStatementASTnode &node) = 0;
+	virtual void visit(DeclarationASTnode &node) = 0;
+	virtual void visit(DeclarationListASTnode &node) = 0;
+	virtual void visit(ProgramASTnode &node) = 0;
 };
 
-class ASTnode {
-     public :
-     virtual ~ASTnode()
-     {
-     }
+class ASTnode
+{
+public:
+	virtual ~ASTnode()
+	{
+	}
 
-    //  virtual void printPostFix() const = 0;
+	//  virtual void printPostFix() const = 0;
 
-     virtual void accept(ASTvisitor& V) = 0;
-
+	virtual void accept(ASTvisitor &V) = 0;
 };
 
 //Program Start
 class ProgramASTnode : public ASTnode
 {
-    public:
-    DeclarationListASTnode* dec_list_item;
+public:
+	ASTnode *dec_list_item;
 };
 
 class DeclarationListASTnode : public ASTnode
 {
-    public:
-    vector<DeclarationASTnode*> dec_list;
+public:
+	vector<ASTnode *> dec_list;
 };
 
-enum DEC_TYPE{
-    FUNC_DEC = 0,
-    VAR_DEC_STATEMENT = 1
-};
 class DeclarationASTnode : public ASTnode
 {
-    public:
-    DEC_TYPE dec_type;
-    FuncDecASTnode* func_dec_item;
-    VarDecStatementASTnode* var_dec_stmnt_item;
 };
 
-class TypeSpecifierASTnode: public ASTnode
+class TypeSpecifierASTnode : public ASTnode
 {
-    public:
-    string type;
+public:
+	string type;
 };
 
-class VarDecListASTnode: public ASTnode
+class VarDecListASTnode : public ASTnode
 {
-    public:
-    vector<VarInitializeASTnode*> var_initialize_list;
+public:
+	vector<ASTnode *> var_initialize_list;
 };
 
-class VarInitializeASTnode: public ASTnode
+enum INITIALIZE_TYPE
 {
-    public:
-    enum INITIALIZE_TYPE{
-        SIMPLE = 0,
-        COMPLEX = 1
-    };
-    enum INITIALIZE_TYPE initialize_type;
-    VarDecIDASTnode* var_dec_id_item;
-    SimpleStatementASTnode* simple_stmnt_item;
+	SIMPLE = 0,
+	COMPLEX = 1
 };
-
-class VarDecIDASTnode: public ASTnode
+class VarInitializeASTnode : public ASTnode
 {
-    public:
-    string id;
-    vector<NumConstASTnode*> dims_size_list;
+public:
+	INITIALIZE_TYPE initialize_type;
+	ASTnode *var_dec_id_item;
+	ASTnode *simple_stmnt_item;
 };
 
-class FuncDecASTnode: public ASTnode
+class VarDecIDASTnode : public ASTnode
 {
-    public:
-    TypeSpecifierASTnode* type_specifier_item;
-    string id;
-    FunctionArgsASTnode* func_args_item;
-    BlockStatementASTnode* block_stmnt_item;
+public:
+	string id;
+	vector<NumConstASTnode *> dims_size_list;
 };
 
-class FunctionArgsASTnode: public ASTnode
+class FuncDecASTnode : public ASTnode
 {
-    public:
-    vector<pair<TypeSpecifierASTnode*, FunctionArgsASTnode*>> func_arg_list;
+public:
+	ASTnode *type_specifier_item;
+	string id;
+	ASTnode *func_args_item;
+	ASTnode *block_stmnt_item;
 };
 
-class StatementASTnode: public ASTnode
+class FunctionArgsASTnode : public ASTnode
 {
-    public:
-    enum STATEMENT_TYPE{
-        EMPTY,
-        BLOCK_STATEMENT,
-        ITERATION_STATEMENT,
-        CONTROL_STATEMENT,
-        RETURN_STATEMENT,
-        ASSIGNMENT_STATEMENT,
-        VAR_DEC_STATEMENT,
-        SIMPLE_STATEMENT,
-        BREAK_STATEMENT,
-        CONTINUE_STATEMENT,
-        STDIN_STATEMENT,
-        STDOUT_STATEMENT,
-    };
-    enum STATEMENT_TYPE stmnt_type;
-    StatementASTnode* stmnt_item;
+public:
+	vector<pair<ASTnode *, ASTnode *>> func_arg_list;
 };
 
-class BlockStatementASTnode: public StatementASTnode
+enum STATEMENT_TYPE
 {
-    public:
-    StatementListASTnode* stmnt_list_item;
+	EMPTY,
+	BLOCK_STATEMENT,
+	ITERATION_STATEMENT,
+	CONTROL_STATEMENT,
+	RETURN_STATEMENT,
+	ASSIGNMENT_STATEMENT,
+	VAR_DEC_STATEMENT,
+	SIMPLE_STATEMENT,
+	BREAK_STATEMENT,
+	CONTINUE_STATEMENT,
+	STDIN_STATEMENT,
+	STDOUT_STATEMENT,
 };
-
-class IterationStatementASTnode: public StatementASTnode
+class StatementASTnode : public ASTnode
 {
-    public:
-    enum ITERATION_STATEMENT_TYPE{
-        FOR,
-        WHILE
-    };
-    enum ITERATION_STATEMENT_TYPE stmnt_type;
-    IterationStatementASTnode* iteration_stmnt_item;
+public:
+	// STATEMENT_TYPE stmnt_type;
+	// ASTnode* stmnt_item;
 };
 
-class ForStatementASTnode: public IterationStatementASTnode
+class BlockStatementASTnode : public ASTnode
 {
-    public:
-    AssignmentStatementASTnode* start_stmnt;
-    ExprASTnode* loop_condition;
-    AssignmentStatementASTnode* end_stmnt;
-    BlockStatementASTnode* loop_body;
+public:
+	ASTnode *stmnt_list_item;
 };
 
-class WhileStatementASTnode: public IterationStatementASTnode
+// enum ITERATION_STATEMENT_TYPE
+// {
+//     FOR,
+//     WHILE
+// };
+class IterationStatementASTnode : public ASTnode
 {
-    public:
-    ExprASTnode* loop_condition;
-    BlockStatementASTnode* loop_body;
+public:
+	// ITERATION_STATEMENT_TYPE stmnt_type;
+	// IterationStatementASTnode* iteration_stmnt_item;
 };
 
-class ControlStatementASTnode: public StatementASTnode
+class ForStatementASTnode : public ASTnode
 {
-    public:
-    enum CONTROL_STATEMENT_TYPE{
-        IF,
-        IF_ELSE
-    };
-    enum CONTROL_STATEMENT_TYPE stmnt_type;
-    ExprASTnode* if_expr;
-    BlockStatementASTnode* if_body;
-    BlockStatementASTnode* else_body;
+public:
+	ASTnode *start_stmnt;
+	ASTnode *loop_condition;
+	ASTnode *end_stmnt;
+	ASTnode *loop_body;
 };
 
-class ReturnStatementASTnode: public StatementASTnode
+class WhileStatementASTnode : public ASTnode
 {
-    public:
-    string id;
+public:
+	ASTnode *loop_condition;
+	ASTnode *loop_body;
 };
 
-class AssignmentStatementASTnode: public StatementASTnode
+enum CONTROL_STATEMENT_TYPE
 {
-    public:
-    vector<pair<VarAccessIdASTnode*, SimpleStatementASTnode*>> assign_stmnt_list;
+	IF_ONLY,
+	IF_ELSE
 };
-
-
-class VarDecStatementASTnode: public StatementASTnode
+class ControlStatementASTnode : public ASTnode
 {
-    public:
-    TypeSpecifierASTnode* type_specifier_item;
-    VarDecListASTnode* var_dec_list_item;
+public:
+	CONTROL_STATEMENT_TYPE stmnt_type;
+	ASTnode *if_expr;
+	ASTnode *if_body;
+	ASTnode *else_body;
 };
 
-class SimpleStatementASTnode: public StatementASTnode
+class ReturnStatementASTnode : public ASTnode
 {
-    public:
-    enum SIMPLE_STATEMENT_TYPE{
-        EXPR,
-        FUNC_CALL
-    };
-    enum SIMPLE_STATEMENT_TYPE stmnt_type;
-    SimpleStatementASTnode* stmnt_item;
+public:
+	bool is_empty;
+	string id;
 };
 
-class BreakStatementASTnode: public StatementASTnode
+class AssignmentStatementASTnode : public ASTnode
 {
+public:
+	vector<pair<ASTnode *, ASTnode *>> assign_stmnt_list;
 };
 
-class ContinueStatementASTnode: public StatementASTnode
+class VarDecStatementASTnode : public ASTnode
+{
+public:
+	ASTnode *type_specifier_item;
+	ASTnode *var_dec_list_item;
+};
+
+enum SIMPLE_STATEMENT_TYPE
+{
+	EXPR,
+	FUNC_CALL
+};
+class SimpleStatementASTnode : public ASTnode
+{
+	// public:
+	// SIMPLE_STATEMENT_TYPE stmnt_type;
+	// ASTnode* stmnt_item;
+};
+
+class BreakStatementASTnode : public ASTnode
 {
 };
 
-class StdinStatementASTnode: public StatementASTnode
+class ContinueStatementASTnode : public ASTnode
 {
-    public:
-    ExprASTnode* expr_item;
 };
 
-class StdoutStatementASTnode: public StatementASTnode
+class StdinStatementASTnode : public ASTnode
 {
-    public:
-    ExprASTnode* expr_item;  
+public:
+	ASTnode *expr_item;
 };
 
-class VarAccessIdASTnode: public ASTnode
+class StdoutStatementASTnode : public ASTnode
 {
-    public:
-    string id;
-    vector<ExprASTnode*> dims_val_list;
+public:
+	ASTnode *expr_item;
 };
 
-class FuncCallASTnode: public ASTnode
+class VarAccessIdASTnode : public ASTnode
 {
-    public:
-    string id;
-    ParamsListASTnode* params_list_item; //do we need this or can we replace this with a list?
+public:
+	string id;
+	vector<ASTnode *> dims_val_list;
 };
 
-class ParamsListASTnode: public ASTnode
+class FuncCallASTnode : public ASTnode
 {
-    public:
-    vector<SimpleStatementASTnode*> simple_stmnt_list;
+public:
+	string id;
+	ASTnode *params_list_item; //do we need this or can we replace this with a list?
 };
 
-class StatementListASTnode: public ASTnode
+class ParamsListASTnode : public ASTnode
 {
-    public:
-    vector<StatementASTnode*> stmnt_list;
+public:
+	vector<ASTnode *> simple_stmnt_list;
 };
 
-class ExprASTnode: public ASTnode
+class StatementListASTnode : public ASTnode
 {
-    public:
-    // enum EXPR_TYPE{
-    //     ID,
-    //     CONST,
-    //     BIN_OP,
-    //     UNI_OP,
-    //     TERNARY_OP,
-    // };
-    // enum EXPR_TYPE expr_type_item;
-    ASTnode* expr_item;
+public:
+	vector<ASTnode *> stmnt_list;
 };
 
-class BinaryASTnode : public ExprASTnode {
-     std::string bin_operator;  
+class ExprASTnode : public ASTnode
+{
+	// public:
+	// enum EXPR_TYPE{
+	//     ID,
+	//     CONST,
+	//     BIN_OP,
+	//     UNI_OP,
+	//     TERNARY_OP,
+	// };
+	// enum EXPR_TYPE expr_type_item;
+	// ASTnode* expr_item;
+};
 
-// lhs and rhs can be of any type. 
-// So we need to use BaseAST
-     ASTnode  *left;
-     ASTnode *right;  
+// enum BIN_OP_TYPE
+// {
+// 	PLUS,
+// 	MINUS,
+// 	MULT,
+// 	DIV,
+// 	AND,
+// 	OR,
+// 	XOR,
+// 	COMP,
+// 	NE,
+// 	LT_E,
+// 	GT_E,
+// 	LT,
+// 	GT,
+// 	MOD
+// };
+class BinaryASTnode : public ExprASTnode
+{
+	string bin_operator;
 
-     public:
-    enum OP_TYPE{
-        PLUS,
-        MINUS,
-        MULT,
-        DIV,
-        AND,
-        OR,
-        XOR,
-        COMP,
-        NE,
-        LT_E,
-        GT_E,
-        LT,
-        GT,
-        MOD
-    };
-    enum OP_TYPE op_type_item;
-// Constructor to initialize binary operator, 
-// lhs and rhs of the binary expression.
-     BinaryASTnode (std::string op, ASTnode* _left, ASTnode* _right ) :
-     bin_operator(op), left(_left), right(_right) {}  
+	// lhs and rhs can be of any type.
+	// So we need to use BaseAST
 
-    /*  virtual void printPostFix() const 
+public:
+	// BIN_OP_TYPE op_type_item;
+	ASTnode *left;
+	ASTnode *right;
+	// Constructor to initialize binary operator,
+	// lhs and rhs of the binary expression.
+	BinaryASTnode(std::string op, ASTnode *_left, ASTnode *_right) : bin_operator(op), left(_left), right(_right) {}
+
+	/*  virtual void printPostFix() const 
      {
      	lhs->printPostFix();
      	rhs->printPostFix();
      	std::cout << bin_operator << " "; 
      } */
 
-    ASTnode* getLeft() {
-        return left;
-    }
+	ASTnode *getLeft()
+	{
+		return left;
+	}
 
-    ASTnode* getRight() {
-        return right;
-    }
+	ASTnode *getRight()
+	{
+		return right;
+	}
 
-    std::string getBin_operator() {
-        return bin_operator;
-    }
-     virtual void accept(ASTvisitor& v)
-    {
-      v.visit(*this);
-    }
-
+	std::string getBin_operator()
+	{
+		return bin_operator;
+	}
+	virtual void accept(ASTvisitor &v)
+	{
+	    v.visit(*this);
+	}
 };
 
-class UnaryASTnode: public ExprASTnode{
+// enum UNI_OP_TYPE
+// {
+// 	NOT,
+// 	MINUS_UNI,
+// };
+class UnaryASTnode : public ExprASTnode
+{
 
-    public:
-    enum OP_TYPE{
-        NOT,
-        MINUS,
-    };
-    enum OP_TYPE op_type_item;
-    ASTnode* expr_item;
+public:
+	// enum OP_TYPE op_type_item;
+	string op_type;
+	ASTnode *expr_item;
+	UnaryASTnode(ASTnode * expr_item_) : expr_item(expr_item_) {}
+	virtual void accept(ASTvisitor &v)
+	{
+	    v.visit(*this);
+	}
 };
 
-class TernaryASTnode : public ExprASTnode {
+class TernaryASTnode : public ExprASTnode
+{
 
-     ASTnode  *first;
-     ASTnode *second;
-     ASTnode *third;  
+	ASTnode *first;
+	ASTnode *second;
+	ASTnode *third;
 
-     public:
-     TernaryASTnode (ASTnode *first, ASTnode *second, ASTnode *third ) :
-     first(first), second(second), third(third) {}  
+public:
+	TernaryASTnode(ASTnode *first, ASTnode *second, ASTnode *third) : first(first), second(second), third(third) {}
 
-  /*   virtual void printPostFix() const
+	/*   virtual void printPostFix() const
      {
      	first->printPostFix();
      	second->printPostFix();
@@ -379,130 +426,142 @@ class TernaryASTnode : public ExprASTnode {
      	std::cout << "? " << std::endl; 
      }  */
 
-    ASTnode* getFirst()
-    {
-        return first;
-    }
+	ASTnode *getFirst()
+	{
+		return first;
+	}
 
-    ASTnode* getSecond()
-    {
-        return second;
-    }
+	ASTnode *getSecond()
+	{
+		return second;
+	}
 
-    ASTnode* getThird()
-    {
-        return third;
-    }
+	ASTnode *getThird()
+	{
+		return third;
+	}
 
-     virtual void accept(ASTvisitor& v) 
-    {
-      v.visit(*this);
-    }
+	virtual void accept(ASTvisitor &v)
+	{
+	    v.visit(*this);
+	}
 };
 
-enum CONST_TYPE{
-    NOT,
-    MINUS,
-};
-class ConstASTnode: public ExprASTnode
+enum CONST_TYPE
 {
-    public:
-    CONST_TYPE const_type_item;
-    string char_const;
-    int num_const;
+    BOOL_CONST,
+    INT_CONST,
+	STRING_CONST
+};
+class ConstASTnode : public ExprASTnode
+{
+	public:
+	CONST_TYPE type;
+    ConstASTnode(CONST_TYPE type) : type(type) {};
+
+    virtual int getValue() {return -1;};
+    
+    int getLitType() {return type;};
+
+    virtual void accept(ASTvisitor& v)
+    {
+      v.visit(*this);
+    }
 };
 
-class NumConstASTnode: public ExprASTnode {
-
+class NumConstASTnode : public ConstASTnode
+{
 	int intlit;
 
-	public:
-
-	IntLitASTnode(int intlit): 
-	intlit(intlit){}
-
-    int getIntLit()
-    {
-        return intlit;
-    }
-
-     virtual void accept(ASTvisitor& v) 
-    {
-      v.visit(*this);
-    }
-    
-	/* virtual void printPostFix() const
-	{
-		std::cout << intlit << " " ;
-	} */
-
-};
-
-class Char: public ASTnode {
-
-	int intlit;
-
-	public:
-
-	IntLitASTnode(int intlit): 
-	intlit(intlit){}
-
-    int getIntLit()
-    {
-        return intlit;
-    }
-
-     virtual void accept(ASTvisitor& v) 
-    {
-      v.visit(*this);
-    }
-    
-	/* virtual void printPostFix() const
-	{
-		std::cout << intlit << " " ;
-	} */
-
-};
-
-
-class ProgramStart: public ASTnode {
-
-	ASTnode* decl_list; 
-
-	public:
-
-	ProgramStart(ASTnode* intlit): 
-	ProgramStart(intlit){}
-
-    int getIntLit()
-    {
-        return intlit;
-    }
-
-     virtual void accept(ASTvisitor& v) 
-    {
-      v.visit(*this);
-    }
-    
-	/* virtual void printPostFix() const
-	{
-		std::cout << intlit << " " ;
-	} */
-
-};
-
-class ASTContext {
 public:
-    ASTnode *root;
+	NumConstASTnode(int intlit_) : intlit(intlit_), ConstASTnode(::INT_CONST) {}
 
-    ~ASTContext()
-    {
-	    clearAST();
-    }
+	int getIntLit()
+	{
+		return intlit;
+	}
 
-    /// free all saved expression trees
-    void	clearAST()
-    {
-        delete root;
-    }
+	virtual void accept(ASTvisitor &v)
+	{
+		v.visit(*this);
+	}
+
+	// virtual void printPostFix() const
+	// {
+	// 	std::cout << intlit << " ";
+	// }
+};
+
+class CharConstASTnode : public ConstASTnode
+{
+public:
+	string charlit;
+	CharConstASTnode(string charlit) : charlit(charlit), ConstASTnode(::STRING_CONST) {}
+
+	string getCharConst()
+	{
+		return charlit;
+	}
+
+	virtual void accept(ASTvisitor &v)
+	{
+	    v.visit(*this);
+	}
+
+	/* virtual void printPostFix() const
+	{
+		std::cout << intlit << " " ;
+	} */
+};
+
+class BoolConstASTnode : public ConstASTnode
+{
+public:
+	string bool_type;
+	BoolConstASTnode(string type_) : bool_type(type_), ConstASTnode(::BOOL_CONST) {}
+	virtual void accept(ASTvisitor &v)
+	{
+		v.visit(*this);
+	}
+};
+
+// class ProgramStart : public ASTnode
+// {
+
+//     ASTnode *decl_list;
+
+// public:
+//     ProgramStart(ASTnode *intlit) : ProgramStart(intlit) {}
+
+//     int getIntLit()
+//     {
+//         return intlit;
+//     }
+
+//     virtual void accept(ASTvisitor &v)
+//     {
+//         v.visit(*this);
+//     }
+
+//     /* virtual void printPostFix() const
+// 	{
+// 		std::cout << intlit << " " ;
+// 	} */
+// };
+
+class ASTContext
+{
+public:
+	ASTnode *root;
+
+	~ASTContext()
+	{
+		clearAST();
+	}
+
+	/// free all saved expression trees
+	void clearAST()
+	{
+		delete root;
+	}
 };

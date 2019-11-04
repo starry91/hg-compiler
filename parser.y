@@ -1,6 +1,8 @@
 %{
   #include <cstdio>
   #include <iostream>
+  #include "PostFixVisitor.h"
+  // #include "ast.h"
   using namespace std;
 
   // stuff from flex that bison needs to know about:
@@ -8,14 +10,55 @@
   extern "C" int yyparse();
   extern FILE *yyin;
   extern int linenum;
- 
   void yyerror(const char *s);
+  class NumConstASTnode* start = NULL;
 %}
 
 %union {
   int ival;
   float fval;
   char *sval;
+  ASTnode* ast;
+  ProgramASTnode* program;
+  DeclarationListASTnode* dec_list;
+  DeclarationASTnode* dec;
+  VarDecStatementASTnode* var_dec_stmnt;
+  TypeSpecifierASTnode* type;
+  VarDecListASTnode* var_dec;
+  VarInitializeASTnode* var_initialize;
+  VarInitializeSimpleASTnode* var_initialize_simple;
+  VarInitializeComplexASTnode* var_initialize_complex;
+  VarDecIDASTnode* var_dec_id;
+  VarDecIDSimpleASTnode* var_dec_id_simple;
+  VarDecID1dASTnode* var_dec_id_1d;
+  VarDecID2dASTnode* var_dec_id_2d;
+  FuncDecASTnode* func_dec;
+  FunctionArgsASTnode* func_args;
+  StatementASTnode* stmnt;
+  AssignmentStatementASTnode* assignment_stmnt;
+  VarAccessIdASTnode* var_access_id;
+  SimpleStatementASTnode* simple_stmnt;
+  BlockStatementASTnode* block_stmnt;
+  IterationStatementASTnode* iteration_stmnt;
+  ForStatementASTnode* for_stmnt;
+  WhileStatementASTnode* while_stmnt;
+  ControlStatementASTnode* control_stmnt;
+  FuncCallASTnode* func_call;
+  ReturnStatementASTnode* return_stmnt;
+  BreakStatementASTnode* break_stmnt;
+  ContinueStatementASTnode* continue_stmnt;
+  StdinStatementASTnode* stdin_stmnt;
+  StdoutStatementASTnode* stdout_stmnt;
+  ParamsListASTnode* params_list_stmnt;
+  StatementListASTnode* stmnt_list;
+  ExprASTnode* expr;
+  TernaryASTnode* ternary_expr;
+  ConstASTnode* const_val;
+  BinaryASTnode* binary_expr;
+  UnaryASTnode* unary_expr;
+  NumConstASTnode* num_const;
+  CharConstASTnode* char_const;
+  BoolConstASTnode* bool_const;
 }
 %define parse.error verbose
 
@@ -26,9 +69,16 @@
 
 // define the "terminal symbol" token types I'm going to use (in CAPS
 // by convention), and associate each with a field of the union:
-%token <ival> NUM_CONST
+%token <num_const> NUM_CONST
+%type <const_val> CONST
+%type <ast> ast_node
+%type <ternary_expr> TERNARY_EXPR
+%type <program> PROGRAM
+%type <DeclarationListASTnode> DECLARATION_LIST
+%type <expr> EXPR
+
 %token <sval> ID
-%token <sval> CHAR_CONST
+%token <char_const> CHAR_CONST
 %token <sval> BIN_OP
 %token <sval> UNARY_OP
 
@@ -133,12 +183,12 @@ EXPR:       VAR_ACCESS_ID
             | UNARY_OP EXPR
             | TERNARY_EXPR
             ;
-TERNARY_EXPR: EXPR '?' EXPR ':' EXPR
+TERNARY_EXPR: EXPR '?' EXPR ':' EXPR {$$ = new TernaryASTnode($1, $3, $5);}
             ;
-CONST:      NUM_CONST
-            | CHAR_CONST
-            | TRUE
-            | FALSE
+CONST:      NUM_CONST {$$ = $1;}
+            | CHAR_CONST {$$ = $1;}
+            | TRUE {$$ = new BoolConstASTnode("TRUE");}
+            | FALSE {$$ = new BoolConstASTnode("FALSE");}
             ;
 %%
 
@@ -158,6 +208,10 @@ int main(int argc,char** argv) {
 
   // Parse through the input:
   yyparse();
+	PostFixVisitor* dfs;
+	dfs=new PostFixVisitor();
+	start->accept(*dfs);
+	printf("\nParsing Over\n");
 }
 
 void yyerror(const char *s) {
