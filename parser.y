@@ -131,8 +131,10 @@ TYPE_SPECIFIER: INT {$$ = new TypeSpecifierASTnode("INT");}
             | UINT {$$ = new TypeSpecifierASTnode("UINT");}
             | VOID {$$ = new TypeSpecifierASTnode("VOID");}
             ;
-VAR_DEC_LIST: VAR_DEC_LIST ',' VAR_INITIALIZE
-            | VAR_INITIALIZE
+VAR_DEC_LIST: VAR_DEC_LIST ',' VAR_INITIALIZE {$$->insert($3);}
+            | VAR_INITIALIZE {$$ = new VarDecListASTnode();
+                $$->insert($1);
+              }
             ;
 VAR_INITIALIZE: VAR_DEC_ID {$$ = new VarInitializeASTnode($1);}
             | VAR_DEC_ID '=' SIMPLE_STATEMENT {$$ = new VarInitializeASTnode($1, $3);}

@@ -9,13 +9,8 @@ class VarDecStatementASTnode;
 class TypeSpecifierASTnode;
 class VarDecListASTnode;
 class VarInitializeASTnode;
-class VarInitializeSimpleASTnode;
-class VarInitializeComplexASTnode;
 
 class VarDecIDASTnode;
-class VarDecIDSimpleASTnode;
-class VarDecID1dASTnode;
-class VarDecID2dASTnode;
 
 class FuncDecASTnode;
 class FunctionArgsASTnode;
