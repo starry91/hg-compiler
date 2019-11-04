@@ -69,8 +69,10 @@ class PostFixVisitor: public ASTvisitor {
 
 	};
 	virtual void visit(ReturnStatementASTnode &node){
-		if(!node.checkIsEmpty())
+		if(!node.checkIsEmpty() && !node.isConstReturn())
 			cout << node.getID() << " ";
+		else if(!node.checkIsEmpty())
+			node.getConstItem()->accept(*this);
 	};
 	virtual void visit(FuncCallASTnode &node){
 		cout << node.getFuncID() << " ";
@@ -141,7 +143,8 @@ class PostFixVisitor: public ASTvisitor {
 	};
 	virtual void visit(VarInitializeASTnode &node){
 		node.getVarDecID()->accept(*this);
-		node.getSimpleStmnt()->accept(*this);
+		if(node.getInitializeType() == ::INITIALIZE_COMPLEX)
+			node.getSimpleStmnt()->accept(*this);
 	};
 	virtual void visit(VarDecListASTnode &node){
 		auto x = node.getVarInitList();

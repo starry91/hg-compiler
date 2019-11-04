@@ -19,7 +19,7 @@ int main()
             {
                 if(x*x+y*y==z1)
                 {
-                    count++;
+                    count=count+1;
                 };
             };
         };

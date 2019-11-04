@@ -125,7 +125,7 @@ public:
 	{
 	    v.visit(*this);
 	}
-	vector<ASTnode *> getDecList()
+	vector<ASTnode *>& getDecList()
 	{
 		return dec_list;
 	}
@@ -173,7 +173,7 @@ public:
 	{
 	    v.visit(*this);
 	}
-	vector<ASTnode *> getVarInitList()
+	vector<ASTnode *>& getVarInitList()
 	{
 		return var_initialize_list;
 	}
@@ -423,9 +423,21 @@ class ReturnStatementASTnode : public StatementASTnode
 {
 public:
 	bool is_empty;
+	bool is_const_return;
 	string id;
-	ReturnStatementASTnode(){is_empty = true;}
-	ReturnStatementASTnode(string id_) : id(id_){is_empty = false;}
+	ASTnode* const_item;
+	ReturnStatementASTnode(){
+		is_empty = true;
+		is_const_return = false;
+	}
+	ReturnStatementASTnode(string id_) : id(id_){
+		is_empty = false;
+		is_const_return = false;
+	}
+	ReturnStatementASTnode(ASTnode* const_item) : const_item(const_item){
+		is_empty = false;
+		is_const_return = true;
+	}
 	virtual void accept(ASTvisitor &v)
 	{
 	    v.visit(*this);
@@ -434,9 +446,17 @@ public:
 	{
 		return is_empty;
 	}
+	bool isConstReturn()
+	{
+		return is_const_return;
+	}
 	string getID()
 	{
 		return id;
+	}
+	ASTnode* getConstItem()
+	{
+		return const_item;
 	}
 };
 

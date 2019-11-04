@@ -14,7 +14,7 @@ void countSort(int n, int exp)
 { 
     int i;
     for (i = 0; i < n; i=i+1) {
-        count[ (arr[i]/exp)%10 ]++; 
+        count[ (arr[i]/exp)%10 ] = count[ (arr[i]/exp)%10 ]+1; 
     };
   
     for (i = 1; i < 10; i=i+1) {
@@ -24,7 +24,7 @@ void countSort(int n, int exp)
     for (i = n - 1; i >= 0; i=i-1) 
     { 
         output[count[ (arr[i]/exp)%10 ] - 1] = arr[i]; 
-        count[ (arr[i]/exp)%10 ]--; 
+        count[ (arr[i]/exp)%10 ] = count[ (arr[i]/exp)%10 ]-1; 
     };
     for (i = 0; i < n; i=i+1) {
         arr[i] = output[i]; 

@@ -181,7 +181,7 @@ SIMPLE_STATEMENT: EXPR {$$ = $1;}
             ;
 FUNC_CALL: ID '(' PARAMS_LIST ')' {$$ = new FuncCallASTnode($1, $3);}
             ;
-PARAMS_LIST: PARAMS_LIST ',' SIMPLE_STATEMENT {$$->insert($1);}
+PARAMS_LIST: PARAMS_LIST ',' SIMPLE_STATEMENT {$$->insert($3);}
             | SIMPLE_STATEMENT  {$$ = new ParamsListASTnode(); $$->insert($1);}
 BLOCK_STATEMENT:  '{' STMNT_LIST '}' {$$ = new BlockStatementASTnode($2);}
             ;  
@@ -199,6 +199,7 @@ CONTROL_STATEMENT: IF '(' EXPR ')' BLOCK_STATEMENT {$$ = new ControlStatementAST
             ;
 RETURN_STATEMENT: RETURN ID {$$ = new ReturnStatementASTnode($2);}
             | RETURN {$$ = new ReturnStatementASTnode();}
+            | RETURN CONST{$$ = new ReturnStatementASTnode($2);}
             ;
 BREAK_STATEMENT: BREAK {$$ = new BreakStatementASTnode();}
             ;
