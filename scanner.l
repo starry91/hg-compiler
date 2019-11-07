@@ -1,5 +1,6 @@
 %{
     #include <iostream>
+    #include "ast.h"
     #include "parser.tab.h"
     using namespace std;
     int linenum = 1;
@@ -102,7 +103,8 @@ endl {
 }
 [0-9]+  {
     cout << yytext;
-    yylval.ival = atoi(yytext);
+    // yylval.ival = atoi(yytext);
+    yylval.num_const = new NumConstASTnode(atoi(yytext));
     return NUM_CONST;
 }
 [a-zA-Z][a-zA-Z0-9]*    {
@@ -112,7 +114,8 @@ endl {
 }
 \".*\"    {
     cout << yytext;
-    yylval.sval = strdup(yytext);
+    // yylval.sval = strdup(yytext);
+    yylval.char_const = new CharConstASTnode(strdup(yytext));
     return CHAR_CONST;
 }
 \+|\-|\*|\/|&&|\|\||\^|==|!=|<=|>=|<|>|%   {

@@ -32,7 +32,6 @@ void main(){
     {
         cin >> arr[i];
     };
-
     insertionSort(arr, n);
     printArray(arr, n); 
 }
