@@ -189,21 +189,20 @@ public:
       Value *v = expr_item->codeGen(*this);
       return v;
     }
-    else
-    {
-      //Generate varcode
-      auto expr_item = node.getID();
-      // Value *v = expr_item->codeGen(*this);
-      return v;
-    }
+    // else
+    // {
+    //   //Generate varcode
+    //   auto expr_item = node.getID();
+    //   // Value *v = expr_item->codeGen(*this);
+    //   return v;
+    // }
   }
   virtual Value *codeGen(FuncCallASTnode &node)
   {
     auto func_name = node.getFuncID();
-    auto *params_list_ast_node = dynamic_cast<ParamsListASTnode *> node.getParamsListItem();
+    auto *params_list_ast_node = dynamic_cast<ParamsListASTnode *>(node.getParamsListItem());
     if (params_list_ast_node)
     {
-      class MethodArgsASTnode *argslist = node.getArgsList();
       auto args_list = params_list_ast_node->getSimpleStmntList();
 
       Function *Func = Module_Ob->getFunction(func_name);
@@ -216,7 +215,7 @@ public:
 
       for (auto arg : args_list)
       {
-        Value *v = arg->codegen(*this);
+        Value *v = arg->codeGen(*this);
         args.push_back(v);
       }
 
@@ -231,12 +230,101 @@ public:
   }
   virtual Value *codeGen(WhileStatementASTnode &node)
   {
-    //TODO
-    return nullptr;
+    auto *start_st = node.getStartStmnt()->codeGen(*this);
+    if (!start_st)
+    {
+      ReportError("unable to generate start statement");
+      return nullptr;
+    }
+
+    Function *parent = Builder.GetInsertBlock()->getParent();
+    BasicBlock *preloopBB = Builder.GetInsertBlock();
+
+    auto *loopBB = BasicBlock::Create(mycontext, "loop", parent);
+    Builder.CreateBr(loopBB);
+
+    Builder.SetInsertPoint(loopBB);
+
+    auto *cond_st = node.getloopCond()->codeGen(*this);
+    if (!cond_st)
+    {
+      ReportError("unable to generate loop condition");
+      return nullptr;
+    }
+
+    auto *loopinnerBB = BasicBlock::Create(mycontext, "loopinner");
+    auto *loopexitBB = BasicBlock::Create(mycontext, "loopexit");
+    auto *condV = Builder.CreateCondBr(cond_st, loopinnerBB, loopexitBB);
+
+    parent->getBasicBlockList().push_back(loopinnerBB);
+    Builder.SetInsertPoint(loopinnerBB);
+    auto *body = node.getloopBody()->codeGen(*this);
+    if (!body)
+    {
+      ReportError("unable to generate loop body");
+      return nullptr;
+    }
+
+    auto *step_st = node.getEndStmnt()->codeGen(*this);
+    if (!step_st)
+    {
+      ReportError("unable to generate loop step");
+      return nullptr;
+    }
+    Builder.CreateBr(loopinnerBB);
+
+    parent->getBasicBlockList().push_back(loopexitBB);
+    Builder.SetInsertPoint(loopexitBB);
+    return loopexitBB;
   }
   virtual Value *codeGen(ForStatementASTnode &node)
   {
-    //TODO
+    auto *start_st = node.getStartStmnt()->codeGen(*this);
+    if (!start_st)
+    {
+      ReportError("unable to generate start statement");
+      return nullptr;
+    }
+
+    Function *parent = Builder.GetInsertBlock()->getParent();
+    BasicBlock *preloopBB = Builder.GetInsertBlock();
+
+    auto *loopBB = BasicBlock::Create(mycontext, "loop", parent);
+    Builder.CreateBr(loopBB);
+
+    Builder.SetInsertPoint(loopBB);
+
+    auto *cond_st = node.getloopCond()->codeGen(*this);
+    if (!cond_st)
+    {
+      ReportError("unable to generate loop condition");
+      return nullptr;
+    }
+
+    auto *loopinnerBB = BasicBlock::Create(mycontext, "loopinner");
+    auto *loopexitBB = BasicBlock::Create(mycontext, "loopexit");
+    auto *condV = Builder.CreateCondBr(cond_st, loopinnerBB, loopexitBB);
+
+    parent->getBasicBlockList().push_back(loopinnerBB);
+    Builder.SetInsertPoint(loopinnerBB);
+    auto *body = node.getloopBody()->codeGen(*this);
+    if (!body)
+    {
+      ReportError("unable to generate loop body");
+      return nullptr;
+    }
+
+    auto *step_st = node.getEndStmnt()->codeGen(*this);
+    if (!step_st)
+    {
+      ReportError("unable to generate loop step");
+      return nullptr;
+    }
+    Builder.CreateBr(loopinnerBB);
+
+    parent->getBasicBlockList().push_back(loopexitBB);
+    Builder.SetInsertPoint(loopexitBB);
+    return loopexitBB;
   }
   virtual Value *codeGen(IterationStatementASTnode &node)
   {
