@@ -119,8 +119,8 @@ DECLARATION_LIST: DECLARATION_LIST  DECLARATION {$$->insert($2);}
                       $$->insert($1);
                     }
                 ;
-DECLARATION: FUNC_DEC {$$ = new DeclarationASTnode($1);}
-            | VAR_DEC_STATEMENT ';' {$$ = new DeclarationASTnode($1);}
+DECLARATION: FUNC_DEC {$$ = $1}
+            | VAR_DEC_STATEMENT ';' {$$ = $1}
             ;
 VAR_DEC_STATEMENT:  TYPE_SPECIFIER VAR_DEC_LIST {$$ = new VarDecStatementASTnode($1, $2);}
             ;

@@ -165,10 +165,13 @@ class DeclarationASTnode : public ASTnode
 {
 public:
 	ASTnode *decl_item;
+	string type;
 	DeclarationASTnode(ASTnode *decl_item) : decl_item(decl_item) {}
+	DeclarationASTnode(ASTnode *decl_item, string type_) : decl_item(decl_item), type(type_) {}
 	virtual void accept(ASTvisitor &v) { v.visit(*this); }
 	virtual Value *codeGen(CodeGenVisitor &v) { return v.codeGen(*this); }
 	ASTnode *getDecItem() { return decl_item; }
+	string getDecItem() { return type; }
 };
 
 class TypeSpecifierASTnode : public ASTnode

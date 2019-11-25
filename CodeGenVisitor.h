@@ -431,7 +431,7 @@ public:
 
     /* https://llvm.org/docs/tutorial/LangImpl03.html */
     FunctionType *functiontype = FunctionType::get(returntype, argTypes, false);
-    Function *TheFunction = Function::Create(functiontype, Function::ExternalLinkage, methodName, Module_Ob);
+    Function *TheFunction = Function::Create(functiontype, Function::ExternalLinkage, func_name, Module_Ob);
     // Function::arg_iterator arg_it = TheFunction->arg_begin();
     /*set the name of each of the function’s arguments according to the names given in the Prototype. */
     /* This step isn’t strictly necessary, but keeping the names consistent makes the IR more readable, and allows 
@@ -460,38 +460,90 @@ public:
       Named_Values[argNames[Idx]] = alloca;
       Idx++;
     }
-    Value *retval = func_body->codegen(*this);
+    Value *retval = func_body->codeGen(*this);
     // if(return_type == "void")
     // Builder.CreateRet(NULL);
 
-    if (retval)
+    if (retval && ret_type != "void")
     {
-      if (return_type != "void")
-      {
-        Builder.CreateRet(retval);
-      }
-      else
-      {
-        Builder.CreateRet(NULL);
-      }
+      Builder.CreateRet(retval);
     }
     else
     {
       Builder.CreateRet(NULL);
     }
-
-    // verifyFunction(*TheFunction);
+    verifyFunction(*TheFunction);
     return TheFunction;
   }
-  virtual Value *codeGen(VarDecIDASTnode &node) = 0;
-  virtual Value *codeGen(VarInitializeASTnode &node) = 0;
-  virtual Value *codeGen(VarDecListASTnode &node) = 0;
+  virtual Value *codeGen(VarDecIDASTnode &node)
+  {
+  }
+  virtual Value *codeGen(VarInitializeASTnode &node)
+  {
+  }
+  virtual Value *codeGen(VarDecListASTnode &node)
+  {
+  }
 
   virtual Value *codeGen(TypeSpecifierASTnode &node) = 0;
-  virtual Value *codeGen(VarDecStatementASTnode &node) = 0;
-  virtual Value *codeGen(DeclarationASTnode &node) = 0;
-  virtual Value *codeGen(DeclarationListASTnode &node) = 0;
-  virtual Value *codeGen(ProgramASTnode &node) = 0;
+  virtual Value *codeGen(VarDecStatementASTnode &node)
+  {
+    Function *TheFunction = Builder.GetInsertBlock()->getParent();
+    Type *datatype;
+    auto type_specifier = dynamic_cast<TypeSpecifierASTnode *>(node.getTypeSpecifier());
+    auto data_type = type_specifier->getType();
+    if (data_type == "int")
+      datatype = Type::getInt32Ty(mycontext);
+    else if (data_type == "bool")
+      datatype = Type::getInt1Ty(mycontext);
+    else if (data_type == "void")
+      datatype = Type::getVoidTy(mycontext);
+    else
+      ReportError("Invalid data type");
+    auto *varlist = dynamic_cast<VarDecListASTnode *>(node.getVarDecListItem());
+    auto var_init_list = varlist->getVarInitList();
+    vector<class IdASTnode *> var_list = varlist->getIdlist();
+    for (auto var_init_item : var_init_list)
+    {
+      auto init_item = dynamic_cast<VarInitializeASTnode *>(var_init_item);
+      auto var_dec_id_item = dynamic_cast<VarDecIDASTnode *>(init_item->getVarDecID());
+      auto var_name = var_dec_id_item->getID();
+      AllocaInst *alloca;
+      // AllocaInst *alloca = CreateEntryBlockAlloca(TheFunction, var_name, datatype);
+      if (data_type == "int")
+      {
+        alloca->setAlignment(4);
+        /* initializing variables to 0 */
+        alloca = Builder.CreateAlloca(Type::getInt32Ty(mycontext), 0, nullptr, "var");
+        Value *initval = ConstantInt::get(mycontext, APInt(32, 0));
+        Builder.CreateAlignedStore(initval, alloca, 4);
+      }
+      else
+      {
+        alloca = Builder.CreateAlloca(Type::getInt1Ty(mycontext), 0, nullptr, "var");
+        Value *initval = ConstantInt::get(mycontext, APInt(1, 0));
+        Builder.CreateStore(initval, alloca);
+      }
+      // Old_vals[var] = NamedValues[var];
+      Named_Values[var_name] = alloca;
+    }
+    return NULL;
+  }
+  virtual Value *codeGen(DeclarationASTnode &node)
+  {
+    return nullptr;
+  }
+  virtual Value *codeGen(DeclarationListASTnode &node)
+  {
+    auto dec_list = node.getDecList();
+    for (auto dec_item : dec_list)
+    {
+      dec_item->codeGen(*this);
+    }
+  }
+  virtual Value *codeGen(ProgramASTnode &node)
+  {
+  }
   virtual Value *codeGen(EmptyStatementASTnode &node) = 0;
 };
 
