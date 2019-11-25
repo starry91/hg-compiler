@@ -233,6 +233,12 @@ public:
       return smartGE(L, R);
     else if (op == "==")
       return smartEQ(L, R);
+    else if (op == "&")
+      return Builder.CreateAnd(L, R, "AND");
+    else if (op == "|")
+      return Builder.CreateOr(L, R, "OR");
+    else if (op == "%")
+      return Builder.CreateSRem(L, R, "Rem");
     else
     {
       cout << "Invalid op: " << op << endl;
@@ -246,7 +252,7 @@ public:
     Value *L = node.getLeft()->codeGen(*this);
     Value *R = node.getRight()->codeGen(*this);
     if (!L || !R)
-      return nullptr;
+      return ReportError("operand codegen failed in binop");
 
     L->print(errs(), false);
     if (L->getType()->isPtrOrPtrVectorTy())
@@ -306,11 +312,66 @@ public:
     PN->addIncoming(third_cd, elseBB);
     return PN;
   }
+
+  virtual Value *codeGen(ControlStatementASTnode &node)
+  {
+    auto *cond = node.getIfExpr();
+    Value *CondV = cond->codeGen(*this);
+    auto *second = node.getIfBody();
+    auto *third = node.getElseBody();
+    if (!CondV)
+    {
+      ReportError("Condition creation failed");
+      return nullptr;
+    }
+    Function *parent = Builder.GetInsertBlock()->getParent();
+    BasicBlock *thenBB = BasicBlock::Create(mycontext, "then", parent);
+    BasicBlock *elseBB = BasicBlock::Create(mycontext, "else");
+    BasicBlock *mergeBB = BasicBlock::Create(mycontext, "merge");
+
+    if (CondV->getType()->isPtrOrPtrVectorTy())
+    {
+      CondV = Builder.CreateLoad(CondV);
+    }
+
+    Builder.CreateCondBr(CondV, thenBB, elseBB);
+    Builder.SetInsertPoint(thenBB);
+    Value *second_cd = second->codeGen(*this);
+    if (!second_cd)
+    {
+      ReportError("Then creation failed");
+      return nullptr;
+    }
+    Builder.CreateBr(mergeBB);
+    parent->getBasicBlockList().push_back(elseBB);
+    Builder.SetInsertPoint(elseBB);
+    Value *third_cd = nullptr;
+    if (third)
+    {
+      third_cd = third->codeGen(*this);
+      if (!third_cd)
+      {
+        ReportError("Then creation failed");
+        return nullptr;
+      }
+    }
+    Builder.CreateBr(mergeBB);
+    parent->getBasicBlockList().push_back(mergeBB);
+    Builder.SetInsertPoint(mergeBB);
+    // PHINode *PN =
+    //     Builder.CreatePHI(second_cd->getType(), 2, "iftmp"); // Type::getInt32Ty(mycontext)
+
+    // PN->addIncoming(second_cd, thenBB);
+    // PN->addIncoming(third_cd, elseBB);
+    return mergeBB;
+  }
+
   virtual Value *codeGen(BoolConstASTnode &node)
       override
   {
     auto bool_type = node.getBoolConst();
     bool val;
+    cout << "bool type: [" << bool_type << "]\n";
     if (bool_type == "true")
     {
       val = true;
@@ -319,7 +380,8 @@ public:
     {
       val = false;
     }
-    auto ret_val = ConstantInt::get(mycontext, APInt(1, val));
+    cout << "bool val: " << val << endl;
+    auto ret_val = ConstantInt::get(mycontext, APInt(1, val ? 1 : 0));
     return ret_val;
   }
   virtual Value *codeGen(CharConstASTnode &node)
@@ -338,6 +400,14 @@ public:
   {
     auto *expr_item = node.getExprItem();
     Value *val = expr_item->codeGen(*this);
+    if (!val)
+    {
+      return ReportError("Unary expr codegen failed");
+    }
+    if (val->getType()->isPtrOrPtrVectorTy())
+    {
+      val = Builder.CreateLoad(val);
+    }
     auto unary_operator = node.getOpType();
     if (unary_operator == "!")
       return Builder.CreateNot(val, "not");
@@ -392,16 +462,21 @@ public:
     vector<Type *> types;
     auto expr_item = node.getExprItem();
     Value *v = expr_item->codeGen(*this);
+    if (!v)
+    {
+      return ReportError("stdout expr codegen failed");
+    }
     if (v->getType()->isPtrOrPtrVectorTy())
     {
       v = Builder.CreateLoad(v);
     }
-    cout << "Type: " << v->getType() << endl;
+    cout << "Type bits: " << v->getType()->getScalarSizeInBits() << endl;
     if (v->getType()->isIntegerTy())
     {
       args.push_back(Builder.CreateGlobalStringPtr("%d\n"));
     }
     args.push_back(v);
+
     /*https://stackoverflow.com/questions/35526075/llvm-how-to-implement-print-function-in-my-language*/
     auto *printFunc = Module_Ob->getOrInsertFunction("printf",
                                                      FunctionType::get(

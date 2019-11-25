@@ -52,6 +52,7 @@ class ASTvisitor
 public:
 	virtual void visit(BinaryASTnode &node) = 0;
 	virtual void visit(TernaryASTnode &node) = 0;
+	virtual void visit(ControlStatementASTnode &node) = 0;
 	virtual void visit(BoolConstASTnode &node) = 0;
 	virtual void visit(CharConstASTnode &node) = 0;
 	virtual void visit(NumConstASTnode &node) = 0;
@@ -94,6 +95,7 @@ class CodeGenVisitor
 public:
 	virtual Value *codeGen(BinaryASTnode &node) = 0;
 	virtual Value *codeGen(TernaryASTnode &node) = 0;
+	virtual Value *codeGen(ControlStatementASTnode &node) = 0;
 	virtual Value *codeGen(BoolConstASTnode &node) = 0;
 	virtual Value *codeGen(CharConstASTnode &node) = 0;
 	virtual Value *codeGen(NumConstASTnode &node) = 0;
@@ -368,6 +370,9 @@ public:
 		else
 			stmnt_type = ::IF_ONLY;
 	}
+	ASTnode *getIfExpr() { return if_expr; }
+	ASTnode *getIfBody() { return if_body; }
+	ASTnode *getElseBody() { return else_body; }
 	virtual void accept(ASTvisitor &v) { v.visit(*this); }
 	virtual Value *codeGen(CodeGenVisitor &v) { return v.codeGen(*this); }
 };

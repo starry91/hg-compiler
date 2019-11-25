@@ -108,12 +108,14 @@
 %token <sval> ADDSUB_OP
 %token <sval> MULDIV_OP
 %token <sval> UNARY_OP
+%token <sval> REM_OP
 
 %right '?' ':'
-%left UNARY_OP
-%left ADDSUB_OP
+%right UNARY_OP
+%right ADDSUB_OP
 %left MULDIV_OP
 %left LOGICAL_OP
+%left REM_OP
 %left ';'
 %%
 // the first rule defined is the highest-level rule, which in our
@@ -223,6 +225,7 @@ EXPR:       VAR_ACCESS_ID {$$ = $1;}
             | EXPR LOGICAL_OP EXPR {$$ = new BinaryASTnode($2, $1, $3);}
             | EXPR ADDSUB_OP EXPR {$$ = new BinaryASTnode($2, $1, $3);}
             | EXPR MULDIV_OP EXPR {$$ = new BinaryASTnode($2, $1, $3);}
+            | EXPR REM_OP EXPR {$$ = new BinaryASTnode($2, $1, $3);}
             | '(' EXPR ')' {$$ = new EnclosedExprASTnode($2);}
             | UNARY_OP EXPR {$$ = new UnaryASTnode($1, $2);}
             | ADDSUB_OP EXPR {$$ = new BinaryASTnode($1, new NumConstASTnode(atoi("0")), $2);}
@@ -242,8 +245,8 @@ TERNARY_EXPR: EXPR '?' EXPR ':' EXPR {$$ = new TernaryASTnode($1, $3, $5);}
             ;
 CONST:      NUM_CONST {$$ = $1;}
             | CHAR_CONST {$$ = $1;}
-            | TRUE {$$ = new BoolConstASTnode("TRUE");}
-            | FALSE {$$ = new BoolConstASTnode("FALSE");}
+            | TRUE {$$ = new BoolConstASTnode("true");}
+            | FALSE {$$ = new BoolConstASTnode("false");}
             ;
 %%
 

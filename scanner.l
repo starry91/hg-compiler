@@ -129,10 +129,15 @@ endl {
     yylval.sval = strdup(yytext);
     return MULDIV_OP;
 }
-&&|\||\^|==|!=|<=|>=|<|>|%   {
+&|\||==|!=|<=|>=|<|>   {
     cout << yytext;
     yylval.sval = strdup(yytext);
     return LOGICAL_OP;
+}
+% {
+    cout << yytext;
+    yylval.sval = strdup(yytext);
+    return REM_OP;  
 }
 (\+\+|--|!|-)   {
     cout << yytext;
