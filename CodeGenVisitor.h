@@ -101,7 +101,7 @@ public:
     Type *t = L->getType();
     if (t->isIntegerTy())
     {
-      return Builder.CreateICmpULT(L, R, "cmptmp");
+      return Builder.CreateICmpSLT(L, R, "cmptmp");
     }
     else if (t->isFloatTy() || t->isDoubleTy())
     {
@@ -118,7 +118,7 @@ public:
     Type *t = L->getType();
     if (t->isIntegerTy())
     {
-      return Builder.CreateICmpUGT(L, R, "cmptmp");
+      return Builder.CreateICmpSGT(L, R, "cmptmp");
     }
     else if (t->isFloatTy() || t->isDoubleTy())
     {
@@ -135,7 +135,7 @@ public:
     Type *t = L->getType();
     if (t->isIntegerTy())
     {
-      return Builder.CreateICmpULE(L, R, "cmptmp");
+      return Builder.CreateICmpSLE(L, R, "cmptmp");
     }
     else if (t->isFloatTy() || t->isDoubleTy())
     {
@@ -152,7 +152,7 @@ public:
     Type *t = L->getType();
     if (t->isIntegerTy())
     {
-      return Builder.CreateICmpUGE(L, R, "cmptmp");
+      return Builder.CreateICmpSGE(L, R, "cmptmp");
     }
     else if (t->isFloatTy() || t->isDoubleTy())
     {
@@ -169,7 +169,7 @@ public:
   //   Type *t = L->getType();
   //   if (t->isIntegerTy())
   //   {
-  //     return Builder.CreateICmpUGT(L, R, "cmptmp")
+  //     return Builder.CreateICmpSGT(L, R, "cmptmp")
   //   }
   //   else if (t->isFloatTy() || t->isDoubleTy())
   //   {
@@ -419,8 +419,33 @@ public:
   virtual Value *codeGen(StdinStatementASTnode &node)
       override
   {
-    //TODO;
-    return nullptr;
+    vector<Value *> args;
+    vector<Type *> types;
+    auto expr_item = node.getExprItem();
+    Value *v = expr_item->codeGen(*this);
+    if (!v->getType()->isPointerTy())
+    {
+      return ReportError("Is not a pointer type in cin");
+    }
+    // cout << "Type: " << v->getType() << endl;
+    if (Builder.CreateLoad(v)->getType()->isIntegerTy())
+    {
+      args.push_back(Builder.CreateGlobalStringPtr("%d"));
+    }
+    args.push_back(v);
+    /*https://stackoverflow.com/questions/35526075/llvm-how-to-implement-print-function-in-my-language*/
+    auto *printFunc = Module_Ob->getOrInsertFunction("scanf",
+                                                     FunctionType::get(
+                                                         IntegerType::getInt32Ty(mycontext),
+                                                         PointerType::get(Type::getInt8Ty(mycontext), 0),
+                                                         //  v->getType(),
+                                                         true));
+    if (!printFunc)
+    {
+      return ReportError("UNable to generate scanf call");
+    }
+    v = Builder.CreateCall(printFunc, args, "scanfCall");
+    return v;
   }
   virtual Value *codeGen(ContinueStatementASTnode &node)
       override
