@@ -6,7 +6,7 @@ parser.tab.c parser.tab.h: parser.y
 lex.yy.c: scanner.l parser.tab.h
 	flex scanner.l
 
-scanner: lex.yy.c parser.tab.c parser.tab.h CodeGenVisitor.h PostFixVisitor.h
+scanner: lex.yy.c parser.tab.c parser.tab.h CodeGenVisitor.h PostFixVisitor.h ast.h
 	g++ ${CFLAGS} parser.tab.c lex.yy.c -lfl -o scanner
 
 clean:

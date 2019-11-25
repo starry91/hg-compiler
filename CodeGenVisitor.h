@@ -387,8 +387,13 @@ public:
   virtual Value *codeGen(CharConstASTnode &node)
       override
   {
-    //TODO
-    return NULL;
+    cout << "in codgen str: " << node.getCharConst() << endl;
+    Value *v = Builder.CreateGlobalStringPtr(node.getCharConst().c_str());
+    if (!v)
+    {
+      return ReportError("unable to create global string");
+    }
+    return v;
   }
   virtual Value *codeGen(NumConstASTnode &node)
       override
@@ -466,16 +471,18 @@ public:
     {
       return ReportError("stdout expr codegen failed");
     }
-    if (v->getType()->isPtrOrPtrVectorTy())
+    if (v->getType()->isPtrOrPtrVectorTy() and Builder.CreateLoad(v)->getType()->getScalarSizeInBits() != 8)
     {
       v = Builder.CreateLoad(v);
-    }
-    cout << "Type bits: " << v->getType()->getScalarSizeInBits() << endl;
-    if (v->getType()->isIntegerTy())
-    {
       args.push_back(Builder.CreateGlobalStringPtr("%d\n"));
+      args.push_back(v);
     }
-    args.push_back(v);
+    else
+    {
+      args.push_back(Builder.CreateGlobalStringPtr("%s\n"));
+      args.push_back(v);
+      v->print(errs());
+    }
 
     /*https://stackoverflow.com/questions/35526075/llvm-how-to-implement-print-function-in-my-language*/
     auto *printFunc = Module_Ob->getOrInsertFunction("printf",

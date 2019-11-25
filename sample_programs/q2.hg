@@ -3,8 +3,8 @@ int main()
     int n, i;
     bool res = true;
     cin>>n;
-    for(i = 2; i*i <= n; i=i+1){
-        if(!(n%i)){
+    for(i = 2; (i*i) <= n; i=i+1){
+        if(n%i == 0){
             res = false;
         };
     };
@@ -14,5 +14,8 @@ int main()
     else {
         cout<<"It is not a prime";
     };
+    cout << res;
+    cout << i;
+    cout << n;
     return 0;
 }

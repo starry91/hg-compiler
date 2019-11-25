@@ -111,8 +111,8 @@
 %token <sval> REM_OP
 
 %right '?' ':'
-%right UNARY_OP
-%right ADDSUB_OP
+%left UNARY_OP
+%left ADDSUB_OP
 %left MULDIV_OP
 %left LOGICAL_OP
 %left REM_OP
@@ -226,7 +226,7 @@ EXPR:       VAR_ACCESS_ID {$$ = $1;}
             | EXPR ADDSUB_OP EXPR {$$ = new BinaryASTnode($2, $1, $3);}
             | EXPR MULDIV_OP EXPR {$$ = new BinaryASTnode($2, $1, $3);}
             | EXPR REM_OP EXPR {$$ = new BinaryASTnode($2, $1, $3);}
-            | '(' EXPR ')' {$$ = new EnclosedExprASTnode($2);}
+            | '(' EXPR ')' {$$ = $2;}
             | UNARY_OP EXPR {$$ = new UnaryASTnode($1, $2);}
             | ADDSUB_OP EXPR {$$ = new BinaryASTnode($1, new NumConstASTnode(atoi("0")), $2);}
             | TERNARY_EXPR {$$ = $1;}

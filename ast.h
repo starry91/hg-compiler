@@ -696,7 +696,10 @@ class CharConstASTnode : public ConstASTnode
 public:
 	string charlit;
 	CharConstASTnode(string charlit)
-		: charlit(charlit), ConstASTnode(::STRING_CONST) {}
+		: charlit(charlit), ConstASTnode(::STRING_CONST)
+	{
+		this->charlit = charlit.substr(1, charlit.size() - 2);
+	}
 
 	string getCharConst() { return charlit; }
 
