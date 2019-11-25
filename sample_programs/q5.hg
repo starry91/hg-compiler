@@ -1,8 +1,8 @@
 bool done[100000];
+
 int printPermutations(int n)
 {
     int i;
-    c = a+b;
     bool flag = false;
     for(i=1; i <= n; i=i+1)
     {
@@ -12,7 +12,7 @@ int printPermutations(int n)
             done[i] = true;
             cout << i;
             cout << " ";
-            printPermutations(start, n);
+            printPermutations(n);
             done[i] = false;
         };
     };

@@ -30,6 +30,26 @@ static std::map<std::string, llvm::Value *> Named_Values;
 
 class CodeGenVisitorImpl : public CodeGenVisitor
 {
+private:
+  bool inFuncContext = false;
+
+  class AutoCtxReleaser
+  {
+
+    bool &flagRef;
+
+  public:
+    AutoCtxReleaser(bool &ref) : flagRef(ref)
+    {
+      flagRef = true;
+    }
+
+    ~AutoCtxReleaser()
+    {
+      flagRef = false;
+    }
+  };
+
 public:
   Value *ReportError(const char *e)
   {
@@ -47,7 +67,7 @@ public:
 
   Value *smartAdd(Value *L, Value *R)
   {
-    Type *t = L->getType();
+    Type *t = getScalarType(L->getType());
     if (t->isIntegerTy())
     {
       return Builder.CreateAdd(L, R, "addtmp");
@@ -64,7 +84,7 @@ public:
 
   Value *smartSub(Value *L, Value *R)
   {
-    Type *t = L->getType();
+    Type *t = getScalarType(L->getType());
     if (t->isIntegerTy())
     {
       return Builder.CreateSub(L, R, "addtmp");
@@ -81,7 +101,7 @@ public:
 
   Value *smartMul(Value *L, Value *R)
   {
-    Type *t = L->getType();
+    Type *t = getScalarType(L->getType());
     if (t->isIntegerTy())
     {
       return Builder.CreateMul(L, R, "addtmp");
@@ -98,7 +118,7 @@ public:
 
   Value *smartLT(Value *L, Value *R)
   {
-    Type *t = L->getType();
+    Type *t = getScalarType(L->getType());
     if (t->isIntegerTy())
     {
       return Builder.CreateICmpSLT(L, R, "cmptmp");
@@ -115,7 +135,7 @@ public:
 
   Value *smartGT(Value *L, Value *R)
   {
-    Type *t = L->getType();
+    Type *t = getScalarType(L->getType());
     if (t->isIntegerTy())
     {
       return Builder.CreateICmpSGT(L, R, "cmptmp");
@@ -132,7 +152,7 @@ public:
 
   Value *smartLE(Value *L, Value *R)
   {
-    Type *t = L->getType();
+    Type *t = getScalarType(L->getType());
     if (t->isIntegerTy())
     {
       return Builder.CreateICmpSLE(L, R, "cmptmp");
@@ -149,7 +169,7 @@ public:
 
   Value *smartGE(Value *L, Value *R)
   {
-    Type *t = L->getType();
+    Type *t = getScalarType(L->getType());
     if (t->isIntegerTy())
     {
       return Builder.CreateICmpSGE(L, R, "cmptmp");
@@ -164,26 +184,10 @@ public:
     }
   }
 
-  // Value *smartPow(Value *L, Value *R)
-  // {
-  //   Type *t = L->getType();
-  //   if (t->isIntegerTy())
-  //   {
-  //     return Builder.CreateICmpSGT(L, R, "cmptmp")
-  //   }
-  //   else if (t->isFloatTy() || t->isDoubleTy())
-  //   {
-  //     return Builder.CreateFCmpUGT(L, R, "cmptmp")
-  //   }
-  //   else
-  //   {
-  //     return ReportError("Ivalid type for bin operation");
-  //   }
-  // }
-
   Value *smartEQ(Value *L, Value *R)
   {
-    Type *t = L->getType();
+    Type *t = getScalarType(L->getType());
+
     if (t->isIntegerTy())
     {
       return Builder.CreateICmpEQ(L, R, "IEQ");
@@ -198,20 +202,21 @@ public:
     }
   }
 
+  Type *getScalarType(Type *t)
+  {
+    // if (t->isArrayTy())
+    // {
+    //   return t->getArrayElementType();
+    // }
+    return t;
+  }
+
   Value *getBinValue(Value *L, Value *R, string op)
   {
     L->print(errs(), false);
-    if (L->getType()->isPtrOrPtrVectorTy())
+    if (getScalarType(L->getType())->getTypeID() != getScalarType(R->getType())->getTypeID())
     {
-      L = Builder.CreateLoad(L);
-    }
-    if (R->getType()->isPtrOrPtrVectorTy())
-    {
-      R = Builder.CreateLoad(R);
-    }
-    if (L->getType()->getTypeID() != R->getType()->getTypeID())
-    {
-      ReportError("Operand types do not match");
+      return ReportError("Operand types do not match");
     }
     // TODO: Add other operators
     // auto op = node.getBin_operator();
@@ -255,12 +260,14 @@ public:
       return ReportError("operand codegen failed in binop");
 
     L->print(errs(), false);
-    if (L->getType()->isPtrOrPtrVectorTy())
+    if (L->getType()->isPtrOrPtrVectorTy() || L->getType()->isArrayTy())
     {
+      cout << "deref L in BinaryAstNode" << endl;
       L = Builder.CreateLoad(L);
     }
-    if (R->getType()->isPtrOrPtrVectorTy())
+    if (R->getType()->isPtrOrPtrVectorTy() || R->getType()->isArrayTy())
     {
+      cout << "deref R in BinaryAstNode" << endl;
       R = Builder.CreateLoad(R);
     }
 
@@ -329,7 +336,7 @@ public:
     BasicBlock *elseBB = BasicBlock::Create(mycontext, "else");
     BasicBlock *mergeBB = BasicBlock::Create(mycontext, "merge");
 
-    if (CondV->getType()->isPtrOrPtrVectorTy())
+    if (CondV->getType()->isPtrOrPtrVectorTy() || CondV->getType()->isArrayTy())
     {
       CondV = Builder.CreateLoad(CondV);
     }
@@ -409,7 +416,7 @@ public:
     {
       return ReportError("Unary expr codegen failed");
     }
-    if (val->getType()->isPtrOrPtrVectorTy())
+    if (val->getType()->isPtrOrPtrVectorTy() || val->getType()->isArrayTy())
     {
       val = Builder.CreateLoad(val);
     }
@@ -471,7 +478,7 @@ public:
     {
       return ReportError("stdout expr codegen failed");
     }
-    if (v->getType()->isPtrOrPtrVectorTy() and Builder.CreateLoad(v)->getType()->getScalarSizeInBits() != 8)
+    if ((v->getType()->isPtrOrPtrVectorTy() || v->getType()->isArrayTy()) && Builder.CreateLoad(v)->getType()->getScalarSizeInBits() != 8)
     {
       v = Builder.CreateLoad(v);
       args.push_back(Builder.CreateGlobalStringPtr("%d"));
@@ -546,23 +553,24 @@ public:
   {
     if (node.checkIsEmpty())
     {
-      return Builder.getInt32(0);
+      return Builder.CreateRet(Builder.getInt32(0));
     }
-    else if (node.isConstReturn())
+    else
     {
       //Generate const code
-      auto expr_item = node.getConstItem();
+      auto expr_item = node.getReturnItem();
       Value *v = expr_item->codeGen(*this);
-      return v;
+      if (!v)
+      {
+        return ReportError("return exp codegen failed");
+      }
+      if (v->getType()->isPtrOrPtrVectorTy() || v->getType()->isArrayTy())
+      {
+        v = Builder.CreateLoad(v);
+      }
+      return Builder.CreateRet(v);
     }
-    return nullptr;
-    // else
-    // {
-    //   //Generate varcode
-    //   auto expr_item = node.getID();
-    //   // Value *v = expr_item->codeGen(*this);
-    //   return v;
-    // }
+    return ReportError("invalid return value");
   }
   virtual Value *codeGen(FuncCallASTnode &node)
       override
@@ -584,6 +592,10 @@ public:
       for (auto arg : args_list)
       {
         Value *v = arg->codeGen(*this);
+        if (v->getType()->isPtrOrPtrVectorTy() || v->getType()->isArrayTy())
+        {
+          v = Builder.CreateLoad(v);
+        }
         args.push_back(v);
       }
 
@@ -701,6 +713,7 @@ public:
       override
   {
     auto var_id = node.getID();
+    bool isGlobal = false;
     Value *v = Named_Values[var_id];
     if (!v)
     {
@@ -709,6 +722,7 @@ public:
       {
         return ReportError("Unknown variable");
       }
+      isGlobal = true;
     }
 
     if (node.getDimsValList().size() == 0)
@@ -717,6 +731,10 @@ public:
       return v;
     }
     vector<Value *> indices;
+    if (isGlobal)
+    {
+      indices.push_back(Builder.getInt32(0));
+    }
     for (auto dim_expr : node.getDimsValList())
     {
       Value *pos = dim_expr->codeGen(*this);
@@ -753,7 +771,11 @@ public:
       {
         return ReportError("variable assignment statement codegen failed");
       }
-      v = Builder.CreateAlignedStore(assign_val, var_val, 4);
+      if (assign_val->getType()->isPtrOrPtrVectorTy() || assign_val->getType()->isArrayTy())
+      {
+        assign_val = Builder.CreateLoad(assign_val);
+      }
+      v = Builder.CreateStore(assign_val, var_val);
       if (!v)
       {
         return ReportError("aligned store codegen failed");
@@ -774,6 +796,7 @@ public:
   virtual Value *codeGen(FuncDecASTnode &node)
       override
   {
+    AutoCtxReleaser ctxHold{inFuncContext};
     auto func_name = node.getID();
     auto func_body = node.getBlockStmnt();
 
@@ -817,10 +840,6 @@ public:
     /* https://llvm.org/docs/tutorial/LangImpl03.html */
     FunctionType *functiontype = FunctionType::get(returntype, argTypes, false);
     Function *TheFunction = Function::Create(functiontype, Function::ExternalLinkage, func_name, Module_Ob);
-    // Function::arg_iterator arg_it = TheFunction->arg_begin();
-    /* set the name of each of the function’s arguments according to the names given in the Prototype. */
-    /* This step isn’t strictly necessary, but keeping the names consistent makes the IR more readable, and allows 
-		subsequent code to refer directly to the arguments for their names, rather than having to look up them up in the Prototype AST.*/
 
     BasicBlock *BB = BasicBlock::Create(mycontext, "entry", TheFunction);
     Builder.SetInsertPoint(BB);
@@ -831,26 +850,10 @@ public:
     for (auto &Arg : TheFunction->args())
     {
       Arg.setName(argNames[Idx]);
-      // AllocaInst *alloca = CreateEntryBlockAlloca(TheFunction, argNames[Idx], argTypes[Idx]);
-      // if (arryt[Idx] == "int")
-      // {
-      //   alloca->setAlignment(4);
-      //   /* initializing variables to 0 */
-      //   Builder.CreateAlignedStore(&Arg, alloca, 4);
-      // }
-      // else
-      // {
-      //   // Value * initval = ConstantInt::get(mycontext, APInt(1,0));
-      //   Builder.CreateStore(&Arg, alloca);
-      // }
       Named_Values[Arg.getName()] = &Arg;
       Idx++;
     }
     Value *retval = func_body->codeGen(*this);
-    if (retval)
-    {
-      Builder.CreateRet(retval);
-    }
     verifyFunction(*TheFunction);
     return TheFunction;
   }
@@ -877,80 +880,153 @@ public:
   virtual Value *codeGen(VarDecStatementASTnode &node)
       override
   {
-    Function *TheFunction = Builder.GetInsertBlock()->getParent();
-    Type *datatype;
-    auto type_specifier = dynamic_cast<TypeSpecifierASTnode *>(node.getTypeSpecifier());
-    auto data_type = type_specifier->getType();
-    if (data_type == "int")
-      datatype = Type::getInt32Ty(mycontext);
-    else if (data_type == "bool")
-      datatype = Type::getInt1Ty(mycontext);
-    else if (data_type == "void")
-      datatype = Type::getVoidTy(mycontext);
+    Function *TheFunction = nullptr;
+    if (inFuncContext)
+    {
+      Function *TheFunction = Builder.GetInsertBlock()->getParent();
+      Type *datatype;
+      auto type_specifier = dynamic_cast<TypeSpecifierASTnode *>(node.getTypeSpecifier());
+      auto data_type = type_specifier->getType();
+      if (data_type == "int")
+        datatype = Type::getInt32Ty(mycontext);
+      else if (data_type == "bool")
+        datatype = Type::getInt1Ty(mycontext);
+      else if (data_type == "void")
+        datatype = Type::getVoidTy(mycontext);
+      else
+      {
+        return ReportError("Invalid data type");
+      }
+      auto varlist = dynamic_cast<VarDecListASTnode *>(node.getVarDecListItem());
+      auto var_init_list = varlist->getVarInitList();
+      cout << "Var init list size: " << var_init_list.size() << endl;
+      for (auto var_init_item : var_init_list)
+      {
+        auto init_item = dynamic_cast<VarInitializeASTnode *>(var_init_item);
+        auto var_dec_id_item = dynamic_cast<VarDecIDASTnode *>(init_item->getVarDecID());
+        auto var_name = var_dec_id_item->getID();
+        // AllocaInst *alloca;
+        AllocaInst *alloca = nullptr;
+        IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
+                         TheFunction->getEntryBlock().begin());
+        if (var_dec_id_item->getDimsSizeList().size() == 0)
+        {
+          alloca = TmpB.CreateAlloca(datatype, 0,
+                                     var_name.c_str());
+        }
+        else
+        {
+          int sz = 1;
+          for (auto num_ast_node : var_dec_id_item->getDimsSizeList())
+          {
+            auto num_ast_item = dynamic_cast<NumConstASTnode *>(num_ast_node);
+            sz *= num_ast_item->getIntLit();
+          }
+          Value *arr_sz = ConstantInt::get(mycontext, APInt(32, sz));
+          alloca = TmpB.CreateAlloca(datatype, arr_sz,
+                                     var_name.c_str());
+        }
+        if (!alloca)
+        {
+          return ReportError("CreateEntryBlockAlloca failed");
+        }
+        if (init_item->getSimpleStmnt())
+        {
+          Value *initval = init_item->getSimpleStmnt()->codeGen(*this);
+          if (!initval)
+          {
+            return ReportError("initVal failed");
+          }
+          Builder.CreateStore(initval, alloca);
+        }
+        Named_Values[var_name] = alloca;
+      }
+      return Builder.GetInsertBlock();
+    }
     else
     {
-      return ReportError("Invalid data type");
-    }
-    auto varlist = dynamic_cast<VarDecListASTnode *>(node.getVarDecListItem());
-    auto var_init_list = varlist->getVarInitList();
-    cout << "Var init list size: " << var_init_list.size() << endl;
-    for (auto var_init_item : var_init_list)
-    {
-      auto init_item = dynamic_cast<VarInitializeASTnode *>(var_init_item);
-      auto var_dec_id_item = dynamic_cast<VarDecIDASTnode *>(init_item->getVarDecID());
-      auto var_name = var_dec_id_item->getID();
-      // AllocaInst *alloca;
-      AllocaInst *alloca = nullptr;
-      IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
-                       TheFunction->getEntryBlock().begin());
-      if (var_dec_id_item->getDimsSizeList().size() == 0)
+      Type *datatype;
+      Constant *val;
+      auto type_specifier = dynamic_cast<TypeSpecifierASTnode *>(node.getTypeSpecifier());
+      auto data_type = type_specifier->getType();
+      if (data_type == "int")
       {
-        alloca = TmpB.CreateAlloca(datatype, 0,
-                                   var_name.c_str());
+        datatype = Type::getInt32Ty(mycontext);
+        val = Constant::getIntegerValue(datatype, APInt(32, 0));
+      }
+      else if (data_type == "bool")
+      {
+        datatype = Type::getInt1Ty(mycontext);
+        val = Constant::getIntegerValue(datatype, APInt(1, 0));
+      }
+      else if (data_type == "void")
+      {
+        datatype = Type::getVoidTy(mycontext);
       }
       else
       {
-        int sz = 1;
-        for (auto num_ast_node : var_dec_id_item->getDimsSizeList())
-        {
-          auto num_ast_item = dynamic_cast<NumConstASTnode *>(num_ast_node);
-          sz *= num_ast_item->getIntLit();
-        }
-        Value *arr_sz = ConstantInt::get(mycontext, APInt(32, sz));
-        alloca = TmpB.CreateAlloca(datatype, arr_sz,
-                                   var_name.c_str());
+        return ReportError("Invalid data type");
       }
-      if (!alloca)
+      auto varlist = dynamic_cast<VarDecListASTnode *>(node.getVarDecListItem());
+      auto var_init_list = varlist->getVarInitList();
+      cout << "Var init list size: " << var_init_list.size() << endl;
+      for (auto var_init_item : var_init_list)
       {
-        return ReportError("CreateEntryBlockAlloca failed");
-      }
-      if (init_item->getSimpleStmnt())
-      {
-        Value *initval = init_item->getSimpleStmnt()->codeGen(*this);
-        if (!initval)
+        auto init_item = dynamic_cast<VarInitializeASTnode *>(var_init_item);
+        auto var_dec_id_item = dynamic_cast<VarDecIDASTnode *>(init_item->getVarDecID());
+        auto var_name = var_dec_id_item->getID();
+        // AllocaInst *alloca;
+        Constant *c = nullptr;
+        if (var_dec_id_item->getDimsSizeList().size() == 0)
         {
-          return ReportError("initVal failed");
+          GlobalVariable *gvar_ptr_abc = new GlobalVariable(/*Module=*/*Module_Ob,
+                                                            /*Type=*/datatype,
+                                                            /*isConstant=*/false,
+                                                            /*Linkage=*/GlobalValue::CommonLinkage,
+                                                            /*Initializer=*/0, // has initializer, specified below
+                                                            /*Name=*/var_name);
+          gvar_ptr_abc->setAlignment(4);
+
+          // Constant Definitions
+          ConstantPointerNull *const_ptr_2 = ConstantPointerNull::get(datatype->getPointerTo());
+
+          // Global Variable Definitions
+          gvar_ptr_abc->setInitializer(Constant::getIntegerValue(datatype, APInt(32, 0)));
+          // c = Module_Ob->getOrInsertGlobal(var_name, datatype);
+          // if (!c)
+          // {
+          //   return ReportError("failed to create global");
+          // }
         }
-        Builder.CreateStore(initval, alloca);
+        else
+        {
+          int sz = 1;
+          for (auto num_ast_node : var_dec_id_item->getDimsSizeList())
+          {
+            auto num_ast_item = dynamic_cast<NumConstASTnode *>(num_ast_node);
+            sz *= num_ast_item->getIntLit();
+          }
+          auto ptr = ArrayType::get(datatype, sz);
+          GlobalVariable *gvar_ptr_abc = new GlobalVariable(/*Module=*/*Module_Ob,
+                                                            /*Type=*/ptr,
+                                                            /*isConstant=*/false,
+                                                            /*Linkage=*/GlobalValue::CommonLinkage,
+                                                            /*Initializer=*/0, // has initializer, specified below
+                                                            /*Name=*/var_name);
+          gvar_ptr_abc->setAlignment(4);
+          ConstantPointerNull *const_ptr_2 = ConstantPointerNull::get(ptr->getPointerTo());
+
+          // Global Variable Definitions
+          gvar_ptr_abc->setInitializer(const_ptr_2);
+          // c = Module_Ob->getOrInsertGlobal(var_name, ArrayType::get(datatype, sz));
+          // if (!c)
+          // {
+          //   return ReportError("failed to create global array");
+          // }
+        }
       }
-      // if (data_type == "int")
-      // {
-      //   alloca->setAlignment(4);
-      //   /* initializing variables to 0 */
-      //   alloca = Builder.CreateAlloca(Type::getInt32Ty(mycontext), 0, nullptr, "var");
-      //   Value *initval = ConstantInt::get(mycontext, APInt(32, 0));
-      //   Builder.CreateAlignedStore(initval, alloca, 4);
-      // }
-      // else
-      // {
-      //   alloca = Builder.CreateAlloca(Type::getInt1Ty(mycontext), 0, nullptr, "var");
-      //   Value *initval = ConstantInt::get(mycontext, APInt(1, 0));
-      //   Builder.CreateStore(initval, alloca);
-      // }
-      // Old_vals[var] = NamedValues[var];
-      Named_Values[var_name] = alloca;
+      return Builder.GetInsertBlock();
     }
-    return Builder.GetInsertBlock();
   }
   virtual Value *codeGen(DeclarationASTnode &node)
       override

@@ -1,21 +1,22 @@
 int n, i, arr[100000];
-void insertionSort(int n)  
+int insertionSort(int n)  
 {  
     int i, key, j;  
     for (i=0; i < n; i=i+1) 
     {  
         key = arr[i];  
         j = i - 1;
-        while (j >= 0 || arr[j] > key) 
+        while ((j >= 0) | (arr[j] > key)) 
         {  
             arr[j + 1] = arr[j];  
             j = j - 1;  
         }; 
         arr[j + 1] = key;  
     };
+    return 0;
 }  
 
-void printArray(int n)  
+int printArray(int n)  
 {  
     int i;  
     for (i=0; i < n; i=i+1)
@@ -23,15 +24,17 @@ void printArray(int n)
         cout << arr[i];
         cout << " ";
     };
-    cout << "\n"; 
+    cout << "\n";
+    return 0; 
 }
-void main(){  
+int main(){  
     cin >> n;
     int i;
     for(i=0; i < n; i=i+1)
     {
         cin >> arr[i];
     };
-    insertionSort(arr, n);
-    printArray(arr, n); 
+    insertionSort(n);
+    printArray(n);
+    return 0;
 }

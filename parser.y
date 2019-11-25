@@ -204,7 +204,7 @@ WHILE_STATEMENT: WHILE '(' EXPR ')' BLOCK_STATEMENT {$$ = new WhileStatementASTn
 CONTROL_STATEMENT: IF '(' EXPR ')' BLOCK_STATEMENT {$$ = new ControlStatementASTnode($3, $5);}
             | IF '(' EXPR ')' BLOCK_STATEMENT ELSE BLOCK_STATEMENT {$$ = new ControlStatementASTnode($3, $5, $7);}
             ;
-RETURN_STATEMENT: RETURN ID {$$ = new ReturnStatementASTnode($2);}
+RETURN_STATEMENT: RETURN VAR_ACCESS_ID {$$ = new ReturnStatementASTnode($2);}
             | RETURN {$$ = new ReturnStatementASTnode();}
             | RETURN CONST{$$ = new ReturnStatementASTnode($2);}
             ;

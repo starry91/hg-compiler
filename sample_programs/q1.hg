@@ -8,4 +8,5 @@ int main()
     };
     cout<<res;
     cout << "\n";
+    return 0;
 }

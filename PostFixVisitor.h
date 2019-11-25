@@ -88,10 +88,8 @@ public:
 	};
 	virtual void visit(ReturnStatementASTnode &node)
 	{
-		if (!node.checkIsEmpty() && !node.isConstReturn())
-			cout << node.getID() << " ";
-		else if (!node.checkIsEmpty())
-			node.getConstItem()->accept(*this);
+		if (!node.checkIsEmpty())
+			node.getReturnItem()->accept(*this);
 	};
 	virtual void visit(FuncCallASTnode &node)
 	{

@@ -381,30 +381,19 @@ class ReturnStatementASTnode : public StatementASTnode
 {
 public:
 	bool is_empty;
-	bool is_const_return;
-	string id;
-	ASTnode *const_item;
+	ASTnode *return_item;
 	ReturnStatementASTnode()
 	{
 		is_empty = true;
-		is_const_return = false;
 	}
-	ReturnStatementASTnode(string id_) : id(id_)
+	ReturnStatementASTnode(ASTnode *const_item) : return_item(const_item)
 	{
 		is_empty = false;
-		is_const_return = false;
-	}
-	ReturnStatementASTnode(ASTnode *const_item) : const_item(const_item)
-	{
-		is_empty = false;
-		is_const_return = true;
 	}
 	virtual void accept(ASTvisitor &v) { v.visit(*this); }
 	virtual Value *codeGen(CodeGenVisitor &v) { return v.codeGen(*this); }
 	bool checkIsEmpty() { return is_empty; }
-	bool isConstReturn() { return is_const_return; }
-	string getID() { return id; }
-	ASTnode *getConstItem() { return const_item; }
+	ASTnode *getReturnItem() { return return_item; }
 };
 
 class AssignmentStatementASTnode : public StatementASTnode
