@@ -104,12 +104,16 @@
 
 %token <sval> ID
 %token <char_const> CHAR_CONST
-%token <sval> BIN_OP
+%token <sval> LOGICAL_OP
+%token <sval> ADDSUB_OP
+%token <sval> MULDIV_OP
 %token <sval> UNARY_OP
 
 %right '?' ':'
 %left UNARY_OP
-%left BIN_OP
+%left ADDSUB_OP
+%left MULDIV_OP
+%left LOGICAL_OP
 %left ';'
 %%
 // the first rule defined is the highest-level rule, which in our
@@ -129,7 +133,6 @@ VAR_DEC_STATEMENT:  TYPE_SPECIFIER VAR_DEC_LIST {$$ = new VarDecStatementASTnode
 TYPE_SPECIFIER: INT {$$ = new TypeSpecifierASTnode("int");}
             | BOOL {$$ = new TypeSpecifierASTnode("bool");}
             | CHAR {$$ = new TypeSpecifierASTnode("char");}
-            | SINT {$$ = new TypeSpecifierASTnode("sint");}
             | UINT {$$ = new TypeSpecifierASTnode("uint");}
             | VOID {$$ = new TypeSpecifierASTnode("void");}
             ;
@@ -217,9 +220,12 @@ STMNT_LIST: STMNT_LIST STATEMENT {$$->insert($2);}
             ;
 EXPR:       VAR_ACCESS_ID {$$ = $1;}
             | CONST {$$ = $1;}
-            | EXPR BIN_OP EXPR {$$ = new BinaryASTnode($2, $1, $3);}
+            | EXPR LOGICAL_OP EXPR {$$ = new BinaryASTnode($2, $1, $3);}
+            | EXPR ADDSUB_OP EXPR {$$ = new BinaryASTnode($2, $1, $3);}
+            | EXPR MULDIV_OP EXPR {$$ = new BinaryASTnode($2, $1, $3);}
             | '(' EXPR ')' {$$ = new EnclosedExprASTnode($2);}
             | UNARY_OP EXPR {$$ = new UnaryASTnode($1, $2);}
+            | ADDSUB_OP EXPR {$$ = new BinaryASTnode($1, new NumConstASTnode(atoi("0")), $2);}
             | TERNARY_EXPR {$$ = $1;}
             ;
 VAR_ACCESS_ID: ID {$$ = new VarAccessIdASTnode($1);

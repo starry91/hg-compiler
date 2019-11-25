@@ -13,6 +13,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/Transforms/Utils/FunctionComparator.h"
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -44,6 +45,201 @@ public:
     Module_Ob->print(errs(), nullptr);
   }
 
+  Value *smartAdd(Value *L, Value *R)
+  {
+    Type *t = L->getType();
+    if (t->isIntegerTy())
+    {
+      return Builder.CreateAdd(L, R, "addtmp");
+    }
+    else if (t->isFloatTy() || t->isDoubleTy())
+    {
+      return Builder.CreateFAdd(L, R, "addtmp");
+    }
+    else
+    {
+      return ReportError("Ivalid type for bin operation");
+    }
+  }
+
+  Value *smartSub(Value *L, Value *R)
+  {
+    Type *t = L->getType();
+    if (t->isIntegerTy())
+    {
+      return Builder.CreateSub(L, R, "addtmp");
+    }
+    else if (t->isFloatTy() || t->isDoubleTy())
+    {
+      return Builder.CreateFSub(L, R, "addtmp");
+    }
+    else
+    {
+      return ReportError("Ivalid type for bin operation");
+    }
+  }
+
+  Value *smartMul(Value *L, Value *R)
+  {
+    Type *t = L->getType();
+    if (t->isIntegerTy())
+    {
+      return Builder.CreateMul(L, R, "addtmp");
+    }
+    else if (t->isFloatTy() || t->isDoubleTy())
+    {
+      return Builder.CreateFMul(L, R, "addtmp");
+    }
+    else
+    {
+      return ReportError("Ivalid type for bin operation");
+    }
+  }
+
+  Value *smartLT(Value *L, Value *R)
+  {
+    Type *t = L->getType();
+    if (t->isIntegerTy())
+    {
+      return Builder.CreateICmpULT(L, R, "cmptmp");
+    }
+    else if (t->isFloatTy() || t->isDoubleTy())
+    {
+      return Builder.CreateFCmpULT(L, R, "cmptmp");
+    }
+    else
+    {
+      return ReportError("Ivalid type for bin operation");
+    }
+  }
+
+  Value *smartGT(Value *L, Value *R)
+  {
+    Type *t = L->getType();
+    if (t->isIntegerTy())
+    {
+      return Builder.CreateICmpUGT(L, R, "cmptmp");
+    }
+    else if (t->isFloatTy() || t->isDoubleTy())
+    {
+      return Builder.CreateFCmpUGT(L, R, "cmptmp");
+    }
+    else
+    {
+      return ReportError("Ivalid type for bin operation");
+    }
+  }
+
+  Value *smartLE(Value *L, Value *R)
+  {
+    Type *t = L->getType();
+    if (t->isIntegerTy())
+    {
+      return Builder.CreateICmpULE(L, R, "cmptmp");
+    }
+    else if (t->isFloatTy() || t->isDoubleTy())
+    {
+      return Builder.CreateFCmpULE(L, R, "cmptmp");
+    }
+    else
+    {
+      return ReportError("Ivalid type for bin operation");
+    }
+  }
+
+  Value *smartGE(Value *L, Value *R)
+  {
+    Type *t = L->getType();
+    if (t->isIntegerTy())
+    {
+      return Builder.CreateICmpUGE(L, R, "cmptmp");
+    }
+    else if (t->isFloatTy() || t->isDoubleTy())
+    {
+      return Builder.CreateFCmpUGE(L, R, "cmptmp");
+    }
+    else
+    {
+      return ReportError("Ivalid type for bin operation");
+    }
+  }
+
+  // Value *smartPow(Value *L, Value *R)
+  // {
+  //   Type *t = L->getType();
+  //   if (t->isIntegerTy())
+  //   {
+  //     return Builder.CreateICmpUGT(L, R, "cmptmp")
+  //   }
+  //   else if (t->isFloatTy() || t->isDoubleTy())
+  //   {
+  //     return Builder.CreateFCmpUGT(L, R, "cmptmp")
+  //   }
+  //   else
+  //   {
+  //     return ReportError("Ivalid type for bin operation");
+  //   }
+  // }
+
+  Value *smartEQ(Value *L, Value *R)
+  {
+    Type *t = L->getType();
+    if (t->isIntegerTy())
+    {
+      return Builder.CreateICmpEQ(L, R, "IEQ");
+    }
+    else if (t->isFloatTy() || t->isDoubleTy())
+    {
+      return Builder.CreateFCmpUEQ(L, R, "FEQ");
+    }
+    else
+    {
+      return ReportError("Ivalid type for bin operation");
+    }
+  }
+
+  Value *getBinValue(Value *L, Value *R, string op)
+  {
+    L->print(errs(), false);
+    if (L->getType()->isPtrOrPtrVectorTy())
+    {
+      L = Builder.CreateLoad(L);
+    }
+    if (R->getType()->isPtrOrPtrVectorTy())
+    {
+      R = Builder.CreateLoad(R);
+    }
+    if (L->getType()->getTypeID() != R->getType()->getTypeID())
+    {
+      ReportError("Operand types do not match");
+    }
+    // TODO: Add other operators
+    // auto op = node.getBin_operator();
+    if (op == "+")
+      return smartAdd(L, R);
+    else if (op == "-")
+      return smartSub(L, R);
+    else if (op == "*")
+      return smartMul(L, R);
+    else if (op == "/")
+      return Builder.CreateUDiv(L, R, "divtmp");
+    else if (op == "<")
+      return smartLT(L, R);
+    else if (op == "<=")
+      return smartLE(L, R);
+    else if (op == ">")
+      return smartGT(L, R);
+    else if (op == ">=")
+      return smartGE(L, R);
+    else if (op == "==")
+      return smartEQ(L, R);
+    else
+    {
+      cout << "Invalid op: " << op << endl;
+      return ReportError("invalid binary operator");
+    }
+  }
+
   virtual Value *codeGen(BinaryASTnode &node)
       override
   {
@@ -64,25 +260,7 @@ public:
 
     // TODO: Add other operators
     auto op = node.getBin_operator();
-    if (op == "+")
-      return Builder.CreateAdd(L, R, "addtmp");
-    else if (op == "-")
-      return Builder.CreateSub(L, R, "subtmp");
-    else if (op == "*")
-      return Builder.CreateMul(L, R, "multmp");
-    else if (op == "/")
-      return Builder.CreateSDiv(L, R, "divtmp");
-    else if (op == "<")
-    {
-      L = Builder.CreateICmpULT(L, R, "cmptmp");
-      // Convert bool 0/1 to double 0.0 or 1.0
-      return L; //Builder.CreateUIToFP(L, Type::getDoubleTy(mycontext), "booltmp");
-    }
-    else
-    {
-      cout << "Invalid op: " << op << endl;
-      return ReportError("invalid binary operator");
-    }
+    return getBinValue(L, R, op);
   }
   virtual Value *codeGen(TernaryASTnode &node)
       override

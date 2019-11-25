@@ -118,10 +118,21 @@ endl {
     yylval.char_const = new CharConstASTnode(strdup(yytext));
     return CHAR_CONST;
 }
-\+|\-|\*|\/|&&|\|\||\^|==|!=|<=|>=|<|>|%   {
+
+\+|\-  {
     cout << yytext;
     yylval.sval = strdup(yytext);
-    return BIN_OP;
+    return ADDSUB_OP;
+}
+\*|\/ {
+    cout << yytext;
+    yylval.sval = strdup(yytext);
+    return MULDIV_OP;
+}
+&&|\||\^|==|!=|<=|>=|<|>|%   {
+    cout << yytext;
+    yylval.sval = strdup(yytext);
+    return LOGICAL_OP;
 }
 (\+\+|--|!|-)   {
     cout << yytext;
