@@ -221,7 +221,7 @@ public:
 	virtual Value *codeGen(CodeGenVisitor &v) { return v.codeGen(*this); }
 	INITIALIZE_TYPE getInitializeType() { return initialize_type; }
 	ASTnode *getVarDecID() { return var_dec_id_item; }
-	ASTnode *getSimpleStmnt() { return var_dec_id_item; }
+	ASTnode *getSimpleStmnt() { return simple_stmnt_item; }
 };
 
 class VarDecIDASTnode : public ASTnode

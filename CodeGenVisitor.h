@@ -823,6 +823,15 @@ public:
       {
         return ReportError("CreateEntryBlockAlloca failed");
       }
+      if (init_item->getSimpleStmnt())
+      {
+        Value *initval = init_item->getSimpleStmnt()->codeGen(*this);
+        if (!initval)
+        {
+          return ReportError("initVal failed");
+        }
+        Builder.CreateStore(initval, alloca);
+      }
       // if (data_type == "int")
       // {
       //   alloca->setAlignment(4);
