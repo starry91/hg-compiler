@@ -1,3 +1,6 @@
+#ifndef _AST_H_
+#define _AST_H_
+
 #include "llvm/IR/Value.h"
 #include <bits/stdc++.h>
 using namespace std;
@@ -86,8 +89,6 @@ public:
 	virtual void visit(EmptyStatementASTnode &node) = 0;
 };
 
-#include "CodeGenVisitor.h"
-
 class CodeGenVisitor
 {
 public:
@@ -171,7 +172,7 @@ public:
 	virtual void accept(ASTvisitor &v) { v.visit(*this); }
 	virtual Value *codeGen(CodeGenVisitor &v) { return v.codeGen(*this); }
 	ASTnode *getDecItem() { return decl_item; }
-	string getDecItem() { return type; }
+	string getType() { return type; }
 };
 
 class TypeSpecifierASTnode : public ASTnode
@@ -208,7 +209,7 @@ public:
 	INITIALIZE_TYPE initialize_type;
 	ASTnode *var_dec_id_item;
 	ASTnode *simple_stmnt_item;
-	VarInitializeASTnode(ASTnode *var_dec_id, ASTnode *simple_stmnt = NULL)
+	VarInitializeASTnode(ASTnode *var_dec_id, ASTnode *simple_stmnt = nullptr)
 		: var_dec_id_item(var_dec_id), simple_stmnt_item(simple_stmnt)
 	{
 		if (simple_stmnt)
@@ -724,3 +725,4 @@ public:
 	/// free all saved expression trees
 	void clearAST() { delete root; }
 };
+#endif

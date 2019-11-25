@@ -2,6 +2,7 @@
   #include <cstdio>
   #include <iostream>
   #include "PostFixVisitor.h"
+  #include "CodeGenVisitor.h"
   // #include "ast.h"
   using namespace std;
 
@@ -21,7 +22,8 @@
   ASTnode* ast;
   ProgramASTnode* program;
   DeclarationListASTnode* dec_list;
-  DeclarationASTnode* dec;
+  //DeclarationASTnode* dec;
+  ASTnode* dec;
   VarDecStatementASTnode* var_dec_stmnt;
   TypeSpecifierASTnode* type;
   VarDecListASTnode* var_dec_list;
@@ -66,7 +68,7 @@
 // define the "terminal symbol" token types I'm going to use (in CAPS
 // by convention), and associate each with a field of the union:
 %token <num_const> NUM_CONST
-%type <ast> ast_node
+// %type <ast> ast_node
 %type <ternary_expr> TERNARY_EXPR
 // %type <binary_expr> TERNARY_EXPR
 // %type <unary_expr> TERNARY_EXPR
@@ -119,17 +121,17 @@ DECLARATION_LIST: DECLARATION_LIST  DECLARATION {$$->insert($2);}
                       $$->insert($1);
                     }
                 ;
-DECLARATION: FUNC_DEC {$$ = $1}
-            | VAR_DEC_STATEMENT ';' {$$ = $1}
+DECLARATION: FUNC_DEC {$$ = $1;}
+            | VAR_DEC_STATEMENT ';' {$$ = $1;}
             ;
 VAR_DEC_STATEMENT:  TYPE_SPECIFIER VAR_DEC_LIST {$$ = new VarDecStatementASTnode($1, $2);}
             ;
-TYPE_SPECIFIER: INT {$$ = new TypeSpecifierASTnode("INT");}
-            | BOOL {$$ = new TypeSpecifierASTnode("BOOL");}
-            | CHAR {$$ = new TypeSpecifierASTnode("CHAR");}
-            | SINT {$$ = new TypeSpecifierASTnode("SINT");}
-            | UINT {$$ = new TypeSpecifierASTnode("UINT");}
-            | VOID {$$ = new TypeSpecifierASTnode("VOID");}
+TYPE_SPECIFIER: INT {$$ = new TypeSpecifierASTnode("int");}
+            | BOOL {$$ = new TypeSpecifierASTnode("bool");}
+            | CHAR {$$ = new TypeSpecifierASTnode("char");}
+            | SINT {$$ = new TypeSpecifierASTnode("sint");}
+            | UINT {$$ = new TypeSpecifierASTnode("uint");}
+            | VOID {$$ = new TypeSpecifierASTnode("void");}
             ;
 VAR_DEC_LIST: VAR_DEC_LIST ',' VAR_INITIALIZE {$$->insert($3);}
             | VAR_INITIALIZE {$$ = new VarDecListASTnode();
@@ -259,6 +261,10 @@ int main(int argc,char** argv) {
 	dfs=new PostFixVisitor();
 	start->accept(*dfs);
 	printf("\nParsing Over\n");
+  CodeGenVisitorImpl* v = new CodeGenVisitorImpl();
+  start->codeGen(*v);
+  v->printCode("sample.l");
+  printf("\nCodegen Over\n");
 }
 
 void yyerror(const char *s) {
