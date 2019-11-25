@@ -474,12 +474,12 @@ public:
     if (v->getType()->isPtrOrPtrVectorTy() and Builder.CreateLoad(v)->getType()->getScalarSizeInBits() != 8)
     {
       v = Builder.CreateLoad(v);
-      args.push_back(Builder.CreateGlobalStringPtr("%d\n"));
+      args.push_back(Builder.CreateGlobalStringPtr("%d"));
       args.push_back(v);
     }
     else
     {
-      args.push_back(Builder.CreateGlobalStringPtr("%s\n"));
+      args.push_back(Builder.CreateGlobalStringPtr("%s"));
       args.push_back(v);
       v->print(errs());
     }
@@ -722,9 +722,13 @@ public:
       Value *pos = dim_expr->codeGen(*this);
       if (!pos)
       {
-        return NULL;
+        return ReportError("Dimension Codegen failed");
       }
-      indices.push_back(Builder.getInt32(0));
+      // indices.push_back(Builder.getInt32(0));
+      if (pos->getType()->isPointerTy())
+      {
+        pos = Builder.CreateLoad(pos);
+      }
       indices.push_back(pos);
     }
     // v = Builder.CreateGEP(Type::getInt32Ty(mycontext), v, indices);
@@ -899,8 +903,23 @@ public:
       AllocaInst *alloca = nullptr;
       IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
                        TheFunction->getEntryBlock().begin());
-      alloca = TmpB.CreateAlloca(datatype, 0,
-                                 var_name.c_str());
+      if (var_dec_id_item->getDimsSizeList().size() == 0)
+      {
+        alloca = TmpB.CreateAlloca(datatype, 0,
+                                   var_name.c_str());
+      }
+      else
+      {
+        int sz = 1;
+        for (auto num_ast_node : var_dec_id_item->getDimsSizeList())
+        {
+          auto num_ast_item = dynamic_cast<NumConstASTnode *>(num_ast_node);
+          sz *= num_ast_item->getIntLit();
+        }
+        Value *arr_sz = ConstantInt::get(mycontext, APInt(32, sz));
+        alloca = TmpB.CreateAlloca(datatype, arr_sz,
+                                   var_name.c_str());
+      }
       if (!alloca)
       {
         return ReportError("CreateEntryBlockAlloca failed");

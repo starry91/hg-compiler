@@ -699,6 +699,10 @@ public:
 		: charlit(charlit), ConstASTnode(::STRING_CONST)
 	{
 		this->charlit = charlit.substr(1, charlit.size() - 2);
+		while (this->charlit.find("\\n") != string::npos)
+		{
+			this->charlit = this->charlit.replace(this->charlit.find("\\n"), 2, "\n");
+		}
 	}
 
 	string getCharConst() { return charlit; }

@@ -10,12 +10,11 @@ int main()
     };
     if(res){
         cout<<"It is a prime";
+        cout << "\n";
     }
     else {
         cout<<"It is not a prime";
+        cout << "\n";
     };
-    cout << res;
-    cout << i;
-    cout << n;
     return 0;
 }

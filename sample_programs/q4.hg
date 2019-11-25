@@ -1,29 +1,31 @@
 int main()
 {
-    int z ;
-    cin >> z ;
-    int x = 0 , y = 0 ; 
+    int z;
+    cin >> z;
+    int x = 0,y = 0; 
     int z1;
-    int count = 0 ;
-    char arr[10];
-    int i;
-    for(i = 0; i < 20; i=i+1)
+    int count = 0;
+    for(z1=0;z1<=z;z1=z1+1)
     {
-        arr[i] = "a";
-    };
-    for(z1=0;z1<z;z1=z1+1)
-    {
-        for(x=0;x*x<z;x=x+1)
+        for(x=0;(x*x)<=z;x=x+1)
         {
-            for (y=0;y*y<z;y=y+1)
+            for (y=0;(y*y)<=z;y=y+1)
             {
-                if(x*x+y*y==z1)
+                if(((x*x)+(y*y))==(z1*z1))
                 {
                     count=count+1;
+                    cout << "Triplet: ";
+                    cout << x;
+                    cout << ", ";
+                    cout <<y;
+                    cout << ", ";
+                    cout <<z1;
+                    cout << "\n\n";
                 };
             };
         };
     };
     cout << count ;
+    cout  << "\n";
     return 0;
 }
